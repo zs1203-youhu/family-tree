@@ -2,329 +2,199 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>周氏家谱</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>周氏至德堂家族谱</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: "Microsoft YaHei", "微软雅黑", -apple-system, BlinkMacSystemFont, sans-serif;
-    background: #f5f5f7;
-    color: #1d1d1f;
-    min-height: 100vh;
-  }
-
-  /* ===== LOGIN ===== */
-  #login-screen {
-    position: fixed; inset: 0;
-    background: #f5f5f7;
-    display: flex; align-items: center; justify-content: center;
-    z-index: 9999;
-  }
-  .login-card {
-    background: #fff;
-    border-radius: 20px;
-    padding: 48px 40px;
-    width: 360px;
-    box-shadow: 0 8px 40px rgba(0,0,0,0.10);
-    text-align: center;
-  }
-  .login-card h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
-  .login-card p { color: #6e6e73; font-size: 15px; margin-bottom: 32px; }
-  .login-card input {
-    width: 100%; padding: 14px 16px;
-    border: 1.5px solid #d2d2d7; border-radius: 12px;
-    font-size: 16px; font-family: inherit;
-    outline: none; margin-bottom: 16px;
-    transition: border-color .2s;
-  }
-  .login-card input:focus { border-color: #0071e3; }
-  .login-card button {
-    width: 100%; padding: 14px;
-    background: #0071e3; color: #fff;
-    border: none; border-radius: 12px;
-    font-size: 16px; font-family: inherit; font-weight: 600;
-    cursor: pointer; transition: background .2s;
-  }
-  .login-card button:hover { background: #0077ed; }
-  .login-error { color: #ff3b30; font-size: 14px; margin-top: 10px; min-height: 20px; }
-
-  /* ===== APP ===== */
-  #app { display: none; }
-
-  /* ===== HEADER ===== */
-  header {
-    background: rgba(255,255,255,0.85);
-    backdrop-filter: saturate(180%) blur(20px);
-    -webkit-backdrop-filter: saturate(180%) blur(20px);
-    border-bottom: 1px solid rgba(0,0,0,0.08);
-    position: sticky; top: 0; z-index: 100;
-    padding: 0 24px;
-    display: flex; align-items: center; justify-content: space-between;
-    height: 56px;
-  }
-  .header-title { font-size: 20px; font-weight: 700; }
-  .header-actions { display: flex; gap: 10px; align-items: center; }
-  .view-toggle {
-    display: flex; background: #f5f5f7; border-radius: 10px; padding: 3px;
-  }
-  .view-btn {
-    padding: 6px 16px; border: none; background: transparent;
-    border-radius: 8px; font-size: 14px; font-family: inherit;
-    cursor: pointer; color: #6e6e73; transition: all .2s;
-  }
-  .view-btn.active {
-    background: #fff; color: #1d1d1f; font-weight: 600;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.10);
-  }
-  .btn-pdf {
-    padding: 7px 16px; border: none;
-    background: #0071e3; color: #fff;
-    border-radius: 10px; font-size: 14px; font-family: inherit;
-    font-weight: 600; cursor: pointer; transition: background .2s;
-  }
-  .btn-pdf:hover { background: #0077ed; }
-
-  /* ===== MAIN ===== */
-  main { padding: 32px 24px; max-width: 1400px; margin: 0 auto; }
-
-  /* ===== TREE VIEW ===== */
-  #tree-view { overflow-x: auto; }
-  .tree-root { display: flex; justify-content: center; }
-  .tree-node {
-    display: flex; flex-direction: column; align-items: center;
-    position: relative;
-  }
-  /* vertical line from parent card bottom to children connector */
-  .tree-node-children-wrapper {
-    display: flex; flex-direction: column; align-items: center;
-    width: 100%;
-  }
-  .tree-vline {
-    width: 2px; height: 28px;
-    background: #c7c7cc;
-  }
-  .tree-hline-row {
-    display: flex; align-items: flex-start;
-    position: relative;
-  }
-  /* horizontal connector above siblings */
-  .tree-hline-row::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 50%; right: 50%;
-    height: 2px;
-    background: #c7c7cc;
-  }
-  .tree-child-col {
-    display: flex; flex-direction: column; align-items: center;
-  }
-  .tree-vline-up {
-    width: 2px; height: 20px;
-    background: #c7c7cc;
-  }
-
-  /* member card */
-  .member-card {
-    background: #fff;
-    border-radius: 14px;
-    padding: 12px 16px;
-    min-width: 140px;
-    max-width: 180px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
-    cursor: pointer;
-    transition: box-shadow .2s, transform .15s;
-    border: 2px solid transparent;
-    text-align: center;
-    margin: 0 8px;
-  }
-  .member-card:hover {
-    box-shadow: 0 6px 24px rgba(0,113,227,0.15);
-    transform: translateY(-2px);
-    border-color: #0071e3;
-  }
-  .member-card .name {
-    font-size: 15px; font-weight: 700; margin-bottom: 4px;
-    color: #1d1d1f;
-  }
-  .member-card .dates {
-    font-size: 12px; color: #6e6e73; line-height: 1.5;
-  }
-  .member-card .spouse-info {
-    font-size: 12px; color: #8e8e93; margin-top: 4px;
-    border-top: 1px solid #f0f0f5; padding-top: 4px;
-  }
-  .member-card.male { border-left: 4px solid #0071e3; }
-  .member-card.female { border-left: 4px solid #ff2d55; }
-  .member-card.unknown { border-left: 4px solid #8e8e93; }
-
-  /* gen label */
-  .gen-badge {
-    font-size: 11px; color: #8e8e93; margin-bottom: 4px;
-  }
-
-  /* ===== GENERATION VIEW ===== */
-  #gen-view { display: none; }
-  .gen-section { margin-bottom: 36px; }
-  .gen-title {
-    font-size: 18px; font-weight: 700; margin-bottom: 16px;
-    padding: 10px 20px;
-    background: #fff; border-radius: 12px;
-    display: inline-block;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    color: #0071e3;
-  }
-  .gen-members {
-    display: flex; flex-wrap: wrap; gap: 14px;
-  }
-  .gen-members .member-card {
-    min-width: 160px; text-align: left;
-  }
-
-  /* ===== MODAL ===== */
-  .modal-overlay {
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.4);
-    backdrop-filter: blur(4px);
-    display: flex; align-items: center; justify-content: center;
-    z-index: 1000;
-    opacity: 0; pointer-events: none;
-    transition: opacity .2s;
-  }
-  .modal-overlay.open { opacity: 1; pointer-events: all; }
-  .modal {
-    background: #fff;
-    border-radius: 20px;
-    padding: 36px 32px;
-    width: 480px;
-    max-width: 95vw;
-    max-height: 85vh;
-    overflow-y: auto;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.18);
-    transform: scale(0.95);
-    transition: transform .2s;
-  }
-  .modal-overlay.open .modal { transform: scale(1); }
-  .modal h2 { font-size: 22px; font-weight: 700; margin-bottom: 24px; }
-  .modal-field { margin-bottom: 16px; }
-  .modal-field label {
-    display: block; font-size: 13px; font-weight: 600;
-    color: #6e6e73; margin-bottom: 6px;
-  }
-  .modal-field input,
-  .modal-field textarea,
-  .modal-field select {
-    width: 100%; padding: 11px 14px;
-    border: 1.5px solid #d2d2d7; border-radius: 10px;
-    font-size: 15px; font-family: inherit;
-    outline: none; transition: border-color .2s;
-    background: #fff;
-  }
-  .modal-field input:focus,
-  .modal-field textarea:focus,
-  .modal-field select:focus { border-color: #0071e3; }
-  .modal-field textarea { resize: vertical; min-height: 80px; }
-  .modal-actions { display: flex; gap: 10px; margin-top: 24px; justify-content: flex-end; }
-  .btn-save {
-    padding: 10px 24px; background: #0071e3; color: #fff;
-    border: none; border-radius: 10px;
-    font-size: 15px; font-family: inherit; font-weight: 600;
-    cursor: pointer; transition: background .2s;
-  }
-  .btn-save:hover { background: #0077ed; }
-  .btn-cancel {
-    padding: 10px 20px; background: #f5f5f7; color: #1d1d1f;
-    border: none; border-radius: 10px;
-    font-size: 15px; font-family: inherit;
-    cursor: pointer; transition: background .2s;
-  }
-  .btn-cancel:hover { background: #e8e8ed; }
-
-  /* ===== PRINT ===== */
-  @media print {
-    header, .modal-overlay, #login-screen { display: none !important; }
-    body { background: #fff; }
-    .member-card { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; }
-    main { padding: 0; }
-  }
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Microsoft YaHei','微软雅黑',-apple-system,BlinkMacSystemFont,sans-serif;background:#f5f5f7;color:#1d1d1f;min-height:100vh}
+/* LOGIN */
+#login-page{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(160deg,#1d1d1f 0%,#2d5a3d 100%)}
+.login-box{background:rgba(255,255,255,0.97);border-radius:20px;padding:48px 40px;width:360px;max-width:90vw;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
+.login-box h1{font-size:26px;font-weight:600;color:#1d1d1f;margin-bottom:6px}
+.login-box p{color:#86868b;font-size:14px;margin-bottom:32px}
+.login-box input{width:100%;padding:14px;border:1.5px solid #d2d2d7;border-radius:10px;font-size:16px;text-align:center;letter-spacing:4px;font-family:inherit;outline:none;transition:border-color .2s}
+.login-box input:focus{border-color:#0071e3}
+.login-btn{width:100%;margin-top:16px;padding:14px;background:#0071e3;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:500;cursor:pointer;font-family:inherit;transition:background .2s}
+.login-btn:hover{background:#0077ed}
+.login-err{color:#ff3b30;font-size:13px;margin-top:10px;display:none}
+/* HEADER */
+#app{display:none}
+header{background:rgba(255,255,255,0.85);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid rgba(0,0,0,0.08);position:sticky;top:0;z-index:100;padding:0 20px}
+.header-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:56px}
+.header-title{font-size:17px;font-weight:600}
+.header-actions{display:flex;gap:8px;align-items:center}
+.btn{padding:7px 16px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:500;font-family:inherit;transition:all .15s;white-space:nowrap}
+.btn-primary{background:#0071e3;color:#fff}
+.btn-primary:hover{background:#0077ed}
+.btn-ghost{background:transparent;color:#0071e3;border:1.5px solid #0071e3}
+.btn-ghost:hover{background:#f0f7ff}
+.btn-sm{padding:6px 12px;font-size:12px}
+/* TABS */
+.tabs{background:rgba(255,255,255,0.85);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid rgba(0,0,0,0.06);padding:0 20px}
+.tabs-inner{max-width:1400px;margin:0 auto;display:flex;gap:0}
+.tab{padding:12px 20px;font-size:14px;font-weight:500;color:#86868b;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;font-family:inherit;background:none;border-top:none;border-left:none;border-right:none}
+.tab.active{color:#0071e3;border-bottom-color:#0071e3}
+/* ZIBI */
+.zibi{background:#1d1d1f;color:#f5c842;text-align:center;padding:6px 16px;font-size:12px;letter-spacing:1.5px}
+/* TREE VIEW */
+#tree-view{overflow:auto;padding:32px 20px;min-height:calc(100vh - 160px)}
+.tree-wrap{display:inline-flex;flex-direction:column;align-items:center;min-width:100%}
+/* NODE */
+.node{display:flex;flex-direction:column;align-items:center;position:relative}
+.node-card{background:#fff;border-radius:12px;padding:10px 14px;min-width:130px;max-width:180px;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,0.08);border-left:4px solid #ccc;transition:all .2s;position:relative;user-select:none}
+.node-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,0.12)}
+.node-card.drag-over{outline:2px dashed #0071e3;background:#f0f7ff}
+.node-name{font-size:14px;font-weight:600;color:#1d1d1f}
+.node-dates{font-size:11px;color:#86868b;margin-top:2px}
+.node-spouse{font-size:11px;color:#e8405a;margin-top:3px}
+.node-connector-down{width:2px;height:24px;background:#d2d2d7;margin:0 auto}
+.node-children{display:flex;flex-direction:row;align-items:flex-start;position:relative;padding-top:0;gap:0}
+.node-children::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:#d2d2d7}
+.node-child-wrap{display:flex;flex-direction:column;align-items:center;position:relative;padding:0 10px}
+.node-child-wrap::before{content:'';position:absolute;top:0;left:50%;width:2px;height:24px;background:#d2d2d7;transform:translateX(-50%)}
+.node-child-connector{height:24px}
+/* GEN COLORS */
+.gen-1{border-left-color:#8b4513!important}
+.gen-2{border-left-color:#4a7c59!important}
+.gen-3{border-left-color:#7b68b5!important}
+.gen-4{border-left-color:#c9a84c!important}
+.gen-5{border-left-color:#4a90d9!important}
+.gen-6{border-left-color:#95a5a6!important}
+/* GEN VIEW */
+#gen-view{padding:24px 20px;max-width:1400px;margin:0 auto}
+.gen-section{margin-bottom:24px}
+.gen-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.gen-dot{width:12px;height:12px;border-radius:50%}
+.gen-label{font-size:15px;font-weight:600}
+.gen-cards{display:flex;flex-wrap:wrap;gap:10px}
+.gen-card{background:#fff;border-radius:12px;padding:12px 16px;min-width:140px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.07);border-left:4px solid #ccc;transition:all .2s}
+.gen-card:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,0.1)}
+.gen-card-name{font-size:14px;font-weight:600}
+.gen-card-dates{font-size:11px;color:#86868b;margin-top:2px}
+.gen-card-spouse{font-size:11px;color:#e8405a;margin-top:2px}
+.gen-card-parent{font-size:11px;color:#aeaeb2;margin-top:2px}
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:500;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:16px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.2)}
+.modal-header{padding:20px 24px 0;display:flex;justify-content:space-between;align-items:center}
+.modal-header h2{font-size:18px;font-weight:600}
+.modal-close{background:none;border:none;font-size:22px;cursor:pointer;color:#86868b;line-height:1;padding:4px}
+.modal-body{padding:20px 24px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.form-group{margin-bottom:12px}
+.form-group label{display:block;font-size:12px;font-weight:500;color:#86868b;margin-bottom:5px}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:10px 12px;border:1.5px solid #d2d2d7;border-radius:8px;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:#0071e3}
+.form-group textarea{height:80px;resize:vertical}
+.modal-footer{padding:16px 24px 20px;display:flex;gap:10px;justify-content:flex-end;border-top:1px solid #f2f2f7}
+.btn-danger{background:#ff3b30;color:#fff}
+.btn-danger:hover{background:#e0342a}
+.btn-save{background:#0071e3;color:#fff}
+/* DRAG */
+.node-card[draggable="true"]{cursor:grab}
+.node-card[draggable="true"]:active{cursor:grabbing}
+/* MOBILE */
+@media(max-width:600px){
+  .login-box{padding:36px 24px}
+  .header-inner{height:52px}
+  .header-title{font-size:15px}
+  .btn{padding:7px 12px;font-size:12px}
+  .tab{padding:10px 14px;font-size:13px}
+  #tree-view{padding:20px 12px}
+  .node-card{min-width:100px;max-width:140px;padding:8px 10px}
+  .node-name{font-size:12px}
+  .node-dates,.node-spouse{font-size:10px}
+  .node-child-wrap{padding:0 5px}
+  .modal{border-radius:0;max-height:100vh;height:100vh}
+  .modal-overlay{padding:0}
+  .form-row{grid-template-columns:1fr}
+}
+@media print{
+  #login-page{display:none!important}
+  header,.tabs,.zibi,.modal-overlay{display:none!important}
+  #app{display:block!important}
+  #gen-view{display:none!important}
+  #tree-view{padding:0;overflow:visible}
+  .node-card{box-shadow:none;border:1px solid #ccc;break-inside:avoid}
+  body{background:#fff}
+}
 </style>
 </head>
 <body>
 
-<!-- LOGIN -->
-<div id="login-screen">
-  <div class="login-card">
-    <h1>周氏家谱</h1>
-    <p>请输入访问密码</p>
-    <input type="password" id="pwd-input" placeholder="密码" />
-    <button onclick="doLogin()">进入家谱</button>
-    <div class="login-error" id="login-error"></div>
+<div id="login-page">
+  <div class="login-box">
+    <h1>周氏至德堂</h1>
+    <p>家族谱 · 协作平台</p>
+    <input type="password" id="pwd" placeholder="请输入访问密码" autocomplete="current-password">
+    <button class="login-btn" onclick="login()">进入家谱</button>
+    <div class="login-err" id="login-err">密码错误，请重试</div>
   </div>
 </div>
 
-<!-- APP -->
 <div id="app">
   <header>
-    <div class="header-title">🌳 周氏家谱</div>
-    <div class="header-actions">
-      <div class="view-toggle">
-        <button class="view-btn active" id="btn-tree" onclick="switchView('tree')">树状视图</button>
-        <button class="view-btn" id="btn-gen" onclick="switchView('gen')">辈分视图</button>
+    <div class="header-inner">
+      <div class="header-title">🌳 周氏至德堂家族谱</div>
+      <div class="header-actions">
+        <button class="btn btn-ghost btn-sm" onclick="openAdd()">＋ 添加</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportCSV()">导出CSV</button>
+        <button class="btn btn-ghost btn-sm" onclick="window.print()">打印PDF</button>
+        <button class="btn btn-ghost btn-sm" onclick="logout()">退出</button>
       </div>
-      <button class="btn-pdf" onclick="window.print()">📄 导出PDF</button>
     </div>
   </header>
-  <main>
-    <div id="tree-view"></div>
-    <div id="gen-view"></div>
-  </main>
+  <div class="tabs">
+    <div class="tabs-inner">
+      <button class="tab active" id="tab-tree" onclick="switchTab('tree')">🌲 树状视图</button>
+      <button class="tab" id="tab-gen" onclick="switchTab('gen')">📋 辈分视图</button>
+    </div>
+  </div>
+  <div class="zibi">字辈：朋昌魁林伍 · 廷玉佩保真 · 诗书延世泽 · 礼乐振家声 · 忠孝承先业 · 贤良裕后昆 · 祖宗传至德 · 丕焕我人文</div>
+  <div id="tree-view"></div>
+  <div id="gen-view" style="display:none"></div>
 </div>
 
-<!-- EDIT MODAL -->
-<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
-  <div class="modal" onclick="event.stopPropagation()">
-    <h2>编辑成员信息</h2>
-    <div class="modal-field">
-      <label>姓名</label>
-      <input type="text" id="edit-name" />
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modal-title">编辑成员</h2>
+      <button class="modal-close" onclick="closeModal()">×</button>
     </div>
-    <div class="modal-field">
-      <label>性别</label>
-      <select id="edit-gender">
-        <option value="男">男</option>
-        <option value="女">女</option>
-        <option value="未知">未知</option>
-      </select>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label>姓名 *</label><input id="f-name" placeholder="如：周诗锦"></div>
+        <div class="form-group"><label>性别</label><select id="f-gender"><option>男</option><option>女</option><option>未知</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>出生日期</label><input id="f-birth" placeholder="如：1978.9.25"></div>
+        <div class="form-group"><label>殁于</label><input id="f-death" placeholder="在世留空"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>配偶姓名</label><input id="f-spouse" placeholder="配偶姓名"></div>
+        <div class="form-group"><label>配偶出生</label><input id="f-spouseBirth" placeholder="配偶生日"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>所属代数</label><select id="f-gen"><option value="1">第一代</option><option value="2">第二代</option><option value="3">第三代</option><option value="4">第四代</option><option value="5">第五代</option><option value="6">第六代</option></select></div>
+        <div class="form-group"><label>父节点</label><select id="f-parent"></select></div>
+      </div>
+      <div class="form-group"><label>生平简介</label><textarea id="f-bio" placeholder="记录生平事迹..."></textarea></div>
     </div>
-    <div class="modal-field">
-      <label>出生（例：1895.1.7）</label>
-      <input type="text" id="edit-birth" placeholder="出生日期" />
-    </div>
-    <div class="modal-field">
-      <label>逝世</label>
-      <input type="text" id="edit-death" placeholder="逝世日期" />
-    </div>
-    <div class="modal-field">
-      <label>配偶姓名</label>
-      <input type="text" id="edit-spouse" placeholder="配偶姓名" />
-    </div>
-    <div class="modal-field">
-      <label>配偶出生</label>
-      <input type="text" id="edit-spouseBirth" placeholder="配偶出生日期" />
-    </div>
-    <div class="modal-field">
-      <label>生平简介</label>
-      <textarea id="edit-bio"></textarea>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeModal()">取消</button>
-      <button class="btn-save" onclick="saveEdit()">保存</button>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" id="btn-del" onclick="delMember()" style="display:none">删除</button>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()">取消</button>
+      <button class="btn btn-save btn-sm" onclick="saveMember()">保存</button>
     </div>
   </div>
 </div>
 
 <script>
-// ===== DATA =====
-const DEFAULT_MEMBERS = [
+const PWD = 'zhou1895';
+const GEN_COLORS = {1:'#8b4513',2:'#4a7c59',3:'#7b68b5',4:'#c9a84c',5:'#4a90d9',6:'#95a5a6'};
+const GEN_NAMES = {1:'第一代',2:'第二代（绿）',3:'第三代（紫）',4:'第四代（土黄）',5:'第五代（蓝）',6:'第六代（灰）'};
+
+const DEFAULTS = [
   {id:1,name:"周筱圃",gender:"男",birth:"",death:"",spouse:"",spouseBirth:"",gen:1,parentId:null,bio:"家族始祖"},
   {id:2,name:"周保乾（靖明）",gender:"男",birth:"1895.1.7",death:"1967.10.31",spouse:"杨淑瑾",spouseBirth:"1895.6.20",gen:2,parentId:1,bio:"元配周氏高夫人（1895.3.3—1923.3.5），继室杨淑瑾（1895.6.20—1975.4.9）"},
   {id:3,name:"周保巽",gender:"男",birth:"",death:"1951.5",spouse:"阮德芝",spouseBirth:"",gen:2,parentId:1,bio:""},
@@ -395,300 +265,209 @@ const DEFAULT_MEMBERS = [
   {id:68,name:"陈彤秋芷",gender:"未知",birth:"2012.10.8",death:"",spouse:"",spouseBirth:"",gen:6,parentId:37,bio:""}
 ];
 
-// ===== STATE =====
-let members = [];
-let editingId = null;
-const GEN_NAMES = ['', '一世', '二世', '三世', '四世', '五世', '六世'];
-const STORAGE_KEY = 'zhou_family_tree_v1';
+let members = [], nextId = 69, editingId = null, draggedId = null, currentTab = 'tree';
 
-function loadData() {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      members = JSON.parse(saved);
-    } else {
-      members = JSON.parse(JSON.stringify(DEFAULT_MEMBERS));
+function login(){
+  if(document.getElementById('pwd').value===PWD){
+    document.getElementById('login-page').style.display='none';
+    document.getElementById('app').style.display='block';
+    const saved=localStorage.getItem('zhou-v2');
+    if(saved){try{const d=JSON.parse(saved);members=d.members;nextId=d.nextId||69;}catch(e){members=JSON.parse(JSON.stringify(DEFAULTS));}}
+    else{members=JSON.parse(JSON.stringify(DEFAULTS));}
+    render();
+  }else{document.getElementById('login-err').style.display='block';}
+}
+document.getElementById('pwd').addEventListener('keydown',e=>{if(e.key==='Enter')login();});
+
+function logout(){document.getElementById('login-page').style.display='flex';document.getElementById('app').style.display='none';}
+
+function save(){localStorage.setItem('zhou-v2',JSON.stringify({members,nextId}));}
+
+function switchTab(t){
+  currentTab=t;
+  document.getElementById('tab-tree').classList.toggle('active',t==='tree');
+  document.getElementById('tab-gen').classList.toggle('active',t==='gen');
+  document.getElementById('tree-view').style.display=t==='tree'?'block':'none';
+  document.getElementById('gen-view').style.display=t==='gen'?'block':'none';
+}
+
+function render(){renderTree();renderGen();}
+
+// ---- TREE VIEW ----
+function renderTree(){
+  const container=document.getElementById('tree-view');
+  container.innerHTML='';
+  const wrap=document.createElement('div');
+  wrap.className='tree-wrap';
+  const roots=members.filter(m=>!m.parentId);
+  roots.forEach(r=>wrap.appendChild(buildNode(r)));
+  container.appendChild(wrap);
+}
+
+function buildNode(m){
+  const children=members.filter(c=>c.parentId===m.id);
+  const nodeEl=document.createElement('div');
+  nodeEl.className='node';
+
+  // Card
+  const card=document.createElement('div');
+  card.className=`node-card gen-${m.gen}`;
+  card.draggable=true;
+  card.innerHTML=`<div class="node-name">${m.name}</div>`+
+    (m.birth||m.death?`<div class="node-dates">${m.birth||''}${m.death?' — 殁'+m.death:''}</div>`:'') +
+    (m.spouse?`<div class="node-spouse">♥ ${m.spouse}</div>`:'');
+  card.onclick=()=>openEdit(m.id);
+
+  // Drag events
+  card.addEventListener('dragstart',e=>{draggedId=m.id;e.dataTransfer.effectAllowed='move';});
+  card.addEventListener('dragover',e=>{e.preventDefault();card.classList.add('drag-over');});
+  card.addEventListener('dragleave',()=>card.classList.remove('drag-over'));
+  card.addEventListener('drop',e=>{
+    e.preventDefault();e.stopPropagation();
+    card.classList.remove('drag-over');
+    if(draggedId&&draggedId!==m.id){
+      const dn=members.find(x=>x.id===draggedId);
+      if(dn&&confirm(`将「${dn.name}」移动到「${m.name}」的子节点？`)){
+        dn.parentId=m.id;save();render();
+      }
     }
-  } catch(e) {
-    members = JSON.parse(JSON.stringify(DEFAULT_MEMBERS));
-  }
-}
-
-function saveData() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(members));
-}
-
-function getMember(id) {
-  return members.find(m => m.id === id);
-}
-
-function getChildren(parentId) {
-  return members.filter(m => m.parentId === parentId);
-}
-
-// ===== LOGIN =====
-function doLogin() {
-  const pwd = document.getElementById('pwd-input').value;
-  if (pwd === 'zhou1895') {
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    loadData();
-    renderAll();
-  } else {
-    document.getElementById('login-error').textContent = '密码错误，请重试';
-    document.getElementById('pwd-input').value = '';
-    document.getElementById('pwd-input').focus();
-  }
-}
-
-document.getElementById('pwd-input').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') doLogin();
-});
-
-// ===== VIEW SWITCH =====
-let currentView = 'tree';
-
-function switchView(v) {
-  currentView = v;
-  document.getElementById('tree-view').style.display = v === 'tree' ? '' : 'none';
-  document.getElementById('gen-view').style.display = v === 'gen' ? '' : 'none';
-  document.getElementById('btn-tree').classList.toggle('active', v === 'tree');
-  document.getElementById('btn-gen').classList.toggle('active', v === 'gen');
-}
-
-// ===== RENDER =====
-function renderAll() {
-  renderTree();
-  renderGen();
-}
-
-// --- TREE VIEW ---
-function renderTree() {
-  const container = document.getElementById('tree-view');
-  container.innerHTML = '';
-  const wrapper = document.createElement('div');
-  wrapper.className = 'tree-root';
-
-  // Find roots (parentId null)
-  const roots = members.filter(m => m.parentId === null);
-  const row = buildTreeRow(roots);
-  wrapper.appendChild(row);
-  container.appendChild(wrapper);
-}
-
-function buildTreeRow(nodes) {
-  if (!nodes || nodes.length === 0) return document.createDocumentFragment();
-  const row = document.createElement('div');
-  row.style.display = 'flex';
-  row.style.alignItems = 'flex-start';
-  row.style.justifyContent = 'center';
-  row.style.position = 'relative';
-
-  // Draw horizontal connector if more than 1 sibling
-  if (nodes.length > 1) {
-    row.classList.add('tree-hline-row');
-  }
-
-  nodes.forEach((node, i) => {
-    const col = document.createElement('div');
-    col.className = 'tree-child-col';
-
-    if (nodes.length > 1) {
-      const vlineUp = document.createElement('div');
-      vlineUp.className = 'tree-vline-up';
-      col.appendChild(vlineUp);
-    }
-
-    const card = buildCard(node);
-    col.appendChild(card);
-
-    const children = getChildren(node.id);
-    if (children.length > 0) {
-      const vline = document.createElement('div');
-      vline.className = 'tree-vline';
-      col.appendChild(vline);
-
-      const childRow = buildTreeRow(children);
-      col.appendChild(childRow);
-    }
-
-    row.appendChild(col);
+    draggedId=null;
   });
 
-  // Draw horizontal line above siblings
-  if (nodes.length > 1) {
-    setTimeout(() => drawHLine(row, nodes.length), 0);
-  }
+  // Touch long-press drag
+  let lpt=null,lpm=null;
+  card.addEventListener('touchstart',e=>{
+    lpm=m.id;
+    lpt=setTimeout(()=>{draggedId=lpm;card.style.opacity='0.6';},600);
+  },{passive:true});
+  card.addEventListener('touchend',()=>{clearTimeout(lpt);if(!draggedId)card.style.opacity='';});
+  card.addEventListener('touchmove',e=>{
+    clearTimeout(lpt);
+    if(!draggedId)return;
+    const t=e.touches[0];
+    const el=document.elementFromPoint(t.clientX,t.clientY);
+    if(el){const tc=el.closest('.node-card');if(tc)tc.classList.add('drag-over');}
+  },{passive:true});
 
-  return row;
-}
+  nodeEl.appendChild(card);
 
-function drawHLine(row, count) {
-  // We use CSS pseudo element approach via inline style instead
-  const cols = row.querySelectorAll(':scope > .tree-child-col');
-  if (cols.length < 2) return;
-  const firstCard = cols[0].querySelector('.member-card');
-  const lastCard = cols[cols.length - 1].querySelector('.member-card');
-  if (!firstCard || !lastCard) return;
-  const rowRect = row.getBoundingClientRect();
-  const firstRect = firstCard.getBoundingClientRect();
-  const lastRect = lastCard.getBoundingClientRect();
-  const left = firstRect.left + firstRect.width / 2 - rowRect.left;
-  const right = lastRect.left + lastRect.width / 2 - rowRect.left;
-  row.style.setProperty('--hline-left', left + 'px');
-  row.style.setProperty('--hline-right', 'calc(100% - ' + right + 'px)');
-}
+  if(children.length>0){
+    const connector=document.createElement('div');
+    connector.className='node-connector-down';
+    nodeEl.appendChild(connector);
 
-function buildCard(member) {
-  const card = document.createElement('div');
-  const gClass = member.gender === '男' ? 'male' : member.gender === '女' ? 'female' : 'unknown';
-  card.className = 'member-card ' + gClass;
-  card.dataset.id = member.id;
-
-  const genBadge = document.createElement('div');
-  genBadge.className = 'gen-badge';
-  genBadge.textContent = GEN_NAMES[member.gen] || ('第' + member.gen + '世');
-
-  const name = document.createElement('div');
-  name.className = 'name';
-  name.textContent = member.name;
-
-  const dates = document.createElement('div');
-  dates.className = 'dates';
-  let datesText = '';
-  if (member.birth) datesText += '生：' + member.birth;
-  if (member.death) datesText += (datesText ? '\n' : '') + '殁：' + member.death;
-  if (!datesText) datesText = '生卒不详';
-  dates.style.whiteSpace = 'pre-line';
-  dates.textContent = datesText;
-
-  card.appendChild(genBadge);
-  card.appendChild(name);
-  card.appendChild(dates);
-
-  if (member.spouse) {
-    const spouseInfo = document.createElement('div');
-    spouseInfo.className = 'spouse-info';
-    spouseInfo.textContent = '配偶：' + member.spouse;
-    if (member.spouseBirth) spouseInfo.textContent += '（' + member.spouseBirth + '）';
-    card.appendChild(spouseInfo);
-  }
-
-  card.addEventListener('click', () => openModal(member.id));
-  return card;
-}
-
-// --- GEN VIEW ---
-function renderGen() {
-  const container = document.getElementById('gen-view');
-  container.innerHTML = '';
-
-  const maxGen = Math.max(...members.map(m => m.gen));
-  for (let g = 1; g <= maxGen; g++) {
-    const genMembers = members.filter(m => m.gen === g);
-    if (genMembers.length === 0) continue;
-
-    const section = document.createElement('div');
-    section.className = 'gen-section';
-
-    const title = document.createElement('div');
-    title.className = 'gen-title';
-    title.textContent = (GEN_NAMES[g] || ('第' + g + '世')) + '（共' + genMembers.length + '人）';
-    section.appendChild(title);
-
-    const membersDiv = document.createElement('div');
-    membersDiv.className = 'gen-members';
-    genMembers.forEach(m => {
-      const card = buildCard(m);
-      membersDiv.appendChild(card);
+    const childRow=document.createElement('div');
+    childRow.className='node-children';
+    children.forEach(child=>{
+      const wrap=document.createElement('div');
+      wrap.className='node-child-wrap';
+      wrap.appendChild(buildNode(child));
+      childRow.appendChild(wrap);
     });
-    section.appendChild(membersDiv);
-    container.appendChild(section);
+    nodeEl.appendChild(childRow);
+  }
+  return nodeEl;
+}
+
+// ---- GEN VIEW ----
+function renderGen(){
+  const container=document.getElementById('gen-view');
+  container.innerHTML='';
+  const maxGen=Math.max(...members.map(m=>m.gen));
+  for(let g=1;g<=maxGen;g++){
+    const ms=members.filter(m=>m.gen===g);
+    if(!ms.length)continue;
+    const sec=document.createElement('div');sec.className='gen-section';
+    const hdr=document.createElement('div');hdr.className='gen-header';
+    hdr.innerHTML=`<div class="gen-dot" style="background:${GEN_COLORS[g]}"></div><div class="gen-label">${GEN_NAMES[g]} (${ms.length}人)</div>`;
+    sec.appendChild(hdr);
+    const cards=document.createElement('div');cards.className='gen-cards';
+    ms.forEach(m=>{
+      const c=document.createElement('div');c.className=`gen-card gen-${m.gen}`;
+      c.style.borderLeftColor=GEN_COLORS[m.gen];
+      const parent=members.find(p=>p.id===m.parentId);
+      c.innerHTML=`<div class="gen-card-name">${m.name}</div>`+
+        (m.birth?`<div class="gen-card-dates">生 ${m.birth}${m.death?' 殁 '+m.death:''}</div>`:'')+
+        (m.spouse?`<div class="gen-card-spouse">♥ ${m.spouse}</div>`:'')+
+        (parent?`<div class="gen-card-parent">↑ ${parent.name}</div>`:'');
+      c.onclick=()=>openEdit(m.id);
+      cards.appendChild(c);
+    });
+    sec.appendChild(cards);container.appendChild(sec);
   }
 }
 
-// ===== MODAL =====
-function openModal(id) {
-  editingId = id;
-  const m = getMember(id);
-  document.getElementById('edit-name').value = m.name;
-  document.getElementById('edit-gender').value = m.gender;
-  document.getElementById('edit-birth').value = m.birth;
-  document.getElementById('edit-death').value = m.death;
-  document.getElementById('edit-spouse').value = m.spouse;
-  document.getElementById('edit-spouseBirth').value = m.spouseBirth;
-  document.getElementById('edit-bio').value = m.bio;
-  document.getElementById('modal-overlay').classList.add('open');
-}
-
-function closeModal(e) {
-  if (e && e.target !== document.getElementById('modal-overlay')) return;
-  document.getElementById('modal-overlay').classList.remove('open');
-  editingId = null;
-}
-
-// override for button
-document.querySelector('.btn-cancel').addEventListener('click', () => {
-  document.getElementById('modal-overlay').classList.remove('open');
-  editingId = null;
-});
-
-function saveEdit() {
-  if (!editingId) return;
-  const idx = members.findIndex(m => m.id === editingId);
-  if (idx === -1) return;
-  members[idx].name = document.getElementById('edit-name').value.trim();
-  members[idx].gender = document.getElementById('edit-gender').value;
-  members[idx].birth = document.getElementById('edit-birth').value.trim();
-  members[idx].death = document.getElementById('edit-death').value.trim();
-  members[idx].spouse = document.getElementById('edit-spouse').value.trim();
-  members[idx].spouseBirth = document.getElementById('edit-spouseBirth').value.trim();
-  members[idx].bio = document.getElementById('edit-bio').value.trim();
-  saveData();
-  document.getElementById('modal-overlay').classList.remove('open');
-  editingId = null;
-  renderAll();
-}
-
-// ===== HORIZONTAL LINE (CSS var approach) =====
-// We use a simple SVG-less CSS approach: after render, inject inline style
-function applyHLines() {
-  document.querySelectorAll('.tree-hline-row').forEach(row => {
-    const cols = Array.from(row.children);
-    if (cols.length < 2) return;
-    const firstVline = cols[0].querySelector('.tree-vline-up');
-    const lastVline = cols[cols.length - 1].querySelector('.tree-vline-up');
-    if (!firstVline || !lastVline) return;
-    const rowRect = row.getBoundingClientRect();
-    const firstRect = firstVline.getBoundingClientRect();
-    const lastRect = lastVline.getBoundingClientRect();
-    const left = firstRect.left + firstRect.width / 2 - rowRect.left;
-    const right = lastRect.left + lastRect.width / 2 - rowRect.left;
-
-    // Add a pseudo-element via a real element
-    let hline = row.querySelector('.hline-bar');
-    if (!hline) {
-      hline = document.createElement('div');
-      hline.className = 'hline-bar';
-      hline.style.cssText = `
-        position:absolute; top:0; height:2px; background:#c7c7cc; pointer-events:none;
-      `;
-      row.style.position = 'relative';
-      row.appendChild(hline);
-    }
-    hline.style.left = left + 'px';
-    hline.style.width = (right - left) + 'px';
+// ---- MODAL ----
+function populateParentSelect(currentId,currentParentId){
+  const sel=document.getElementById('f-parent');
+  sel.innerHTML='<option value="">— 无（根节点）—</option>';
+  members.filter(m=>m.id!==currentId).forEach(m=>{
+    const opt=document.createElement('option');
+    opt.value=m.id;opt.textContent=`${m.name}（第${m.gen}代）`;
+    if(m.id===currentParentId)opt.selected=true;
+    sel.appendChild(opt);
   });
 }
 
-// Re-apply on resize
-window.addEventListener('resize', applyHLines);
-// Override renderTree to call applyHLines after DOM settles
-const _origRenderTree = renderTree;
-function renderTree() {
-  _origRenderTree.call(this);
-  requestAnimationFrame(() => requestAnimationFrame(applyHLines));
+function openEdit(id){
+  const m=members.find(x=>x.id===id);if(!m)return;
+  editingId=id;
+  document.getElementById('modal-title').textContent='编辑成员';
+  document.getElementById('f-name').value=m.name;
+  document.getElementById('f-gender').value=m.gender;
+  document.getElementById('f-birth').value=m.birth;
+  document.getElementById('f-death').value=m.death;
+  document.getElementById('f-spouse').value=m.spouse;
+  document.getElementById('f-spouseBirth').value=m.spouseBirth;
+  document.getElementById('f-gen').value=m.gen;
+  document.getElementById('f-bio').value=m.bio;
+  populateParentSelect(id,m.parentId);
+  document.getElementById('btn-del').style.display='inline-block';
+  document.getElementById('modal').classList.add('open');
 }
+
+function openAdd(){
+  editingId=null;
+  document.getElementById('modal-title').textContent='添加成员';
+  ['f-name','f-birth','f-death','f-spouse','f-spouseBirth','f-bio'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-gender').value='男';
+  document.getElementById('f-gen').value='5';
+  populateParentSelect(null,null);
+  document.getElementById('btn-del').style.display='none';
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal(){document.getElementById('modal').classList.remove('open');}
+
+function saveMember(){
+  const name=document.getElementById('f-name').value.trim();
+  if(!name){alert('请填写姓名');return;}
+  const parentVal=document.getElementById('f-parent').value;
+  const data={name,gender:document.getElementById('f-gender').value,birth:document.getElementById('f-birth').value.trim(),death:document.getElementById('f-death').value.trim(),spouse:document.getElementById('f-spouse').value.trim(),spouseBirth:document.getElementById('f-spouseBirth').value.trim(),gen:parseInt(document.getElementById('f-gen').value),parentId:parentVal?parseInt(parentVal):null,bio:document.getElementById('f-bio').value.trim()};
+  if(editingId){Object.assign(members.find(m=>m.id===editingId),data);}
+  else{members.push({id:nextId++,...data});}
+  save();closeModal();render();
+}
+
+function delMember(){
+  if(!editingId)return;
+  const m=members.find(x=>x.id===editingId);
+  if(!confirm(`确认删除「${m.name}」？其子节点将变为根节点。`))return;
+  members.filter(c=>c.parentId===editingId).forEach(c=>c.parentId=m.parentId);
+  members=members.filter(x=>x.id!==editingId);
+  save();closeModal();render();
+}
+
+function exportCSV(){
+  const BOM='\uFEFF';
+  const hdr=['姓名','性别','出生','殁于','配偶','配偶出生','代数','父节点','生平'].join(',');
+  const rows=members.map(m=>{const p=members.find(x=>x.id===m.parentId);return [m.name,m.gender,m.birth,m.death,m.spouse,m.spouseBirth,'第'+m.gen+'代',p?p.name:'',m.bio].map(v=>`"${(v||'').replace(/"/g,'""')}"`).join(',');});
+  const csv=BOM+[hdr,...rows].join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='周氏家谱.csv';a.click();
+}
+
+document.getElementById('modal').addEventListener('click',e=>{if(e.target===document.getElementById('modal'))closeModal();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
 </script>
 </body>
 </html>
