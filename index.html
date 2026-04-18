@@ -6,7 +6,7 @@
 <title>周氏至德堂家族谱</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Microsoft YaHei','微软雅黑',-apple-system,sans-serif;background:#f5f5f7;color:#1d1d1f}
+body{font-family:'Microsoft YaHei','微软雅黑',-apple-system,sans-serif;background:#f5f5f7;color:#1d1d1f;overflow-x:hidden}
 #login-page{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(160deg,#1d1d1f 0%,#2d5a3d 100%)}
 .login-box{background:rgba(255,255,255,0.97);border-radius:20px;padding:48px 36px;width:360px;max-width:90vw;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
 .login-box h1{font-size:26px;font-weight:700;margin-bottom:6px}
@@ -14,502 +14,194 @@ body{font-family:'Microsoft YaHei','微软雅黑',-apple-system,sans-serif;backg
 .login-box input{width:100%;padding:13px;border:1.5px solid #d2d2d7;border-radius:10px;font-size:18px;text-align:center;letter-spacing:6px;outline:none;font-family:inherit}
 .login-box input:focus{border-color:#0071e3}
 .login-btn{width:100%;margin-top:14px;padding:13px;background:#0071e3;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit}
-.login-btn:active{background:#005bb5}
 .login-err{color:#ff3b30;font-size:13px;margin-top:8px;display:none}
 #app{display:none}
 header{background:rgba(255,255,255,0.9);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(0,0,0,0.1);position:sticky;top:0;z-index:200;padding:0 16px}
 .hdr{display:flex;align-items:center;justify-content:space-between;height:52px}
 .hdr-title{font-size:16px;font-weight:700}
 .hdr-btns{display:flex;gap:6px}
-.btn{padding:6px 12px;border-radius:8px;border:none;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+.btn{padding:6px 12px;border-radius:8px;border:none;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;white-space:nowrap}
 .btn-blue{background:#0071e3;color:#fff}
 .btn-outline{background:transparent;color:#0071e3;border:1.5px solid #0071e3}
 .tabs{display:flex;background:rgba(255,255,255,0.9);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(0,0,0,0.08)}
-.tab{flex:1;padding:10px;font-size:13px;font-weight:600;color:#86868b;cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;font-family:inherit;-webkit-tap-highlight-color:transparent}
+.tab{flex:1;padding:10px;font-size:13px;font-weight:600;color:#86868b;cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;font-family:inherit}
 .tab.on{color:#0071e3;border-bottom-color:#0071e3}
 .zibi{background:#1d1d1f;color:#f5c842;text-align:center;padding:6px 12px;font-size:11px;letter-spacing:1px;line-height:1.6}
 .filter-bar{background:#fff;border-bottom:1px solid #f2f2f7;padding:8px 16px;display:flex;gap:8px;align-items:center;overflow-x:auto}
-.filter-btn{padding:5px 14px;border-radius:20px;border:1.5px solid #d2d2d7;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;background:#fff;color:#1d1d1f;font-family:inherit;-webkit-tap-highlight-color:transparent}
+.filter-btn{padding:5px 14px;border-radius:20px;border:1.5px solid #d2d2d7;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;background:#fff;color:#1d1d1f;font-family:inherit}
 .filter-btn.on{background:#0071e3;color:#fff;border-color:#0071e3}
-#tree-view{overflow:auto;padding:24px 16px;min-height:60vh;-webkit-overflow-scrolling:touch}
-.tree-canvas{display:inline-flex;flex-direction:column;align-items:center;padding-bottom:40px}
+#tree-view{overflow:auto;padding:24px 16px;min-height:60vh;touch-action:pan-x pan-y}
+.tree-canvas{display:inline-flex;flex-direction:column;align-items:center;padding-bottom:40px;transform-origin:top center}
 .node{display:flex;flex-direction:column;align-items:center}
-.card{background:#fff;border-radius:12px;padding:10px 13px;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,0.09);border-left:4px solid #ccc;min-width:120px;max-width:170px;position:relative;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;transition:box-shadow .15s,transform .15s}
+.card{background:#fff;border-radius:12px;padding:10px 13px;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,0.09);border-left:4px solid #ccc;min-width:120px;max-width:170px;position:relative;user-select:none}
 .card:active{transform:scale(0.97)}
-.card.drag-source{opacity:0.4;transform:scale(0.95)}
+.card.dragging{opacity:0.5}
 .card.drop-target{outline:2.5px dashed #0071e3;background:#eef5ff}
 .card .gen-badge{position:absolute;top:5px;right:7px;font-size:9px;color:#fff;background:#0071e3;border-radius:4px;padding:1px 4px;font-weight:700}
 .card .cname{font-size:14px;font-weight:700;color:#1d1d1f;padding-right:28px}
 .card .cdates{font-size:10px;color:#86868b;margin-top:2px}
 .card .cspouse{font-size:10px;color:#e8405a;margin-top:3px}
-.card .cbio{font-size:10px;color:#aeaeb2;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .vline{width:2px;height:20px;background:#d2d2d7;margin:0 auto}
 .children-row{display:flex;flex-direction:row;align-items:flex-start;position:relative}
 .children-row::before{content:'';position:absolute;top:0;left:14%;right:14%;height:2px;background:#d2d2d7}
 .child-col{display:flex;flex-direction:column;align-items:center;padding:0 8px;position:relative}
-.child-col::before{content:'';position:absolute;top:0;left:50%;width:2px;height:20px;background:#d2d2d7;transform:translateX(-50%)}
-#gen-view{padding:16px;display:none}
+.child-col::before{content:'';position:absolute;top:0;left:50%;width:2px;height:20px;background:#d2d2d7}
+#gen-view{padding:16px;display:none;max-width:1200px;margin:0 auto}
 .gen-sec{margin-bottom:20px}
 .gen-hdr{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:14px;font-weight:700}
 .gen-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
 .gen-cards{display:flex;flex-wrap:wrap;gap:8px}
-.gcard{background:#fff;border-radius:10px;padding:10px 13px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.07);border-left:4px solid;min-width:130px;-webkit-tap-highlight-color:transparent}
+.gcard{background:#fff;border-radius:10px;padding:10px 13px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.07);border-left:4px solid;min-width:130px}
 .gcard .gname{font-size:13px;font-weight:700}
 .gcard .gdates{font-size:10px;color:#86868b;margin-top:2px}
 .gcard .gspouse{font-size:10px;color:#e8405a;margin-top:2px}
 .gcard .gparent{font-size:10px;color:#aeaeb2;margin-top:2px}
-.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:500;align-items:flex-end;justify-content:center}
-.overlay.open{display:flex}
-@media(min-width:600px){.overlay{align-items:center}}
-.modal{background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;padding-bottom:env(safe-area-inset-bottom,16px)}
-@media(min-width:600px){.modal{border-radius:16px;max-height:85vh}}
-.modal-hdr{padding:18px 20px 0;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#fff;z-index:1;border-bottom:1px solid #f2f2f7;padding-bottom:12px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:500;display:none;align-items:center;justify-content:center;padding:16px}
+.modal.on{display:flex}
+.modal-box{background:#fff;border-radius:16px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto}
+.modal-hdr{padding:16px 20px;border-bottom:1px solid #f2f2f7;display:flex;justify-content:space-between;align-items:center}
 .modal-hdr h2{font-size:17px;font-weight:700}
-.modal-close{background:none;border:none;font-size:24px;cursor:pointer;color:#86868b;line-height:1;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center}
-.modal-close:active{background:#f2f2f7}
-.modal-body{padding:16px 20px}
-.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
-.fg{margin-bottom:10px}
-.fg label{display:block;font-size:11px;font-weight:700;color:#86868b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
-.fg input,.fg select,.fg textarea{width:100%;padding:10px 12px;border:1.5px solid #d2d2d7;border-radius:8px;font-size:14px;font-family:inherit;outline:none;-webkit-appearance:none}
-.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:#0071e3}
-.fg textarea{height:72px;resize:vertical}
-.modal-foot{padding:12px 20px 20px;display:flex;gap:8px;justify-content:flex-end;border-top:1px solid #f2f2f7}
-.btn-red{background:#ff3b30;color:#fff}
-.btn-red:active{background:#d4302a}
-.btn-green{background:#34c759;color:#fff}
-.btn-green:active{background:#2aad4c}
-.drag-ghost{position:fixed;pointer-events:none;z-index:9999;opacity:0.85;transform:scale(1.05);box-shadow:0 8px 30px rgba(0,0,0,0.2);border-radius:12px}
-@media print{
-  #login-page,header,.tabs,.zibi,.filter-bar,.overlay{display:none!important}
-  #app{display:block!important}
-  #gen-view{display:none!important}
-  #tree-view{padding:0;overflow:visible}
-  .card{box-shadow:none;border:1px solid #ccc;break-inside:avoid;page-break-inside:avoid}
-  body{background:#fff}
-  .hdr-btns{display:none}
-}
+.modal-close{background:none;border:none;font-size:24px;cursor:pointer;color:#86868b}
+.modal-body{padding:20px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.form-group{margin-bottom:12px}
+.form-group label{display:block;font-size:12px;color:#86868b;margin-bottom:5px;font-weight:600}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:9px 11px;border:1.5px solid #d2d2d7;border-radius:8px;font-size:14px;font-family:inherit;outline:none}
+.form-group textarea{height:70px;resize:vertical}
+.modal-footer{padding:16px 20px;border-top:1px solid #f2f2f7;display:flex;gap:8px;justify-content:flex-end}
+.btn-danger{background:#ff3b30;color:#fff}
+.modal-bg{position:absolute;inset:0;z-index:-1}
+@media print{#login-page,header,.tabs,.zibi,.filter-bar,.modal{display:none!important}#tree-view{padding:0;overflow:visible}body{background:#fff}}
+.gen-1{border-left-color:#8b4513!important}.gen-2{border-left-color:#4a7c59!important}.gen-3{border-left-color:#7b68b5!important}.gen-4{border-left-color:#c9a84c!important}.gen-5{border-left-color:#4a90d9!important}.gen-6{border-left-color:#95a5a6!important}
 </style>
 </head>
 <body>
-<div id="login-page">
-  <div class="login-box">
-    <h1>周氏至德堂</h1>
-    <p>家族谱 · 协作平台</p>
-    <input type="password" id="pwd" placeholder="请输入密码" autocomplete="current-password">
-    <button class="login-btn" onclick="doLogin()">进入家谱</button>
-    <div class="login-err" id="lerr">密码错误，请重试</div>
-  </div>
-</div>
+<div id="login-page"><div class="login-box"><h1>周氏至德堂</h1><p>家族谱</p><input type="password" id="pwd" placeholder="请输入密码"><button class="login-btn" onclick="login()">进入</button><div class="login-err" id="login-err">密码错误</div></div></div>
 <div id="app">
-  <header>
-    <div class="hdr">
-      <div class="hdr-title">🌳 周氏至德堂</div>
-      <div class="hdr-btns">
-        <button class="btn btn-outline" onclick="openAdd()">＋ 添加</button>
-        <button class="btn btn-outline" onclick="exportCSV()">CSV</button>
-        <button class="btn btn-outline" onclick="window.print()">PDF</button>
-        <button class="btn btn-outline" onclick="doLogout()">退出</button>
-      </div>
-    </div>
-  </header>
-  <div class="tabs">
-    <button class="tab on" id="tab-tree" onclick="switchTab('tree')">🌲 树状</button>
-    <button class="tab" id="tab-gen" onclick="switchTab('gen')">📋 辈分</button>
-  </div>
-  <div class="zibi">字辈：朋昌魁林伍 · 廷玉佩保真 · 诗书延世泽 · 礼乐振家声 · 忠孝承先业 · 贤良裕后昆 · 祖宗传至德 · 丕焕我人文</div>
-  <div class="filter-bar">
-    <span style="font-size:12px;font-weight:700;color:#86868b;white-space:nowrap">筛选：</span>
-    <button class="filter-btn on" id="f-all" onclick="setFilter('all')">全部成员</button>
-    <button class="filter-btn" id="f-zhou" onclick="setFilter('zhou')">仅周姓</button>
-    <button class="filter-btn" id="f-nonzhou" onclick="setFilter('nonzhou')">非周姓</button>
-  </div>
-  <div id="tree-view"><div class="tree-canvas" id="tree-canvas"></div></div>
-  <div id="gen-view"></div>
+<header><div class="hdr"><div class="hdr-title">周氏至德堂家族谱</div><div class="hdr-btns"><button class="btn btn-outline" onclick="openAdd()">+ 添加</button><button class="btn btn-outline" onclick="exportCSV()">导出</button><button class="btn btn-outline" onclick="window.print()">打印</button><button class="btn btn-outline" onclick="logout()">退出</button></div></div></header>
+<div class="tabs"><button class="tab on" onclick="switchTab('tree')" id="tab-tree">🌲 树状</button><button class="tab" onclick="switchTab('gen')" id="tab-gen">📋 辈分</button></div>
+<div class="zibi">字辈：朋昌魁林伍 · 廷玉佩保真 · 诗书延世泽 · 礼乐振家声 · 忠孝承先业 · 贤良裕后昆 · 祖宗传至德 · 丕焕我人文</div>
+<div class="filter-bar"><button class="filter-btn on" onclick="setFilter('all')" id="btn-all">全部</button><button class="filter-btn" onclick="setFilter('zhou')" id="btn-zhou">只显示周姓</button></div>
+<div id="tree-view"><div class="tree-canvas" id="tree-canvas"></div></div>
+<div id="gen-view"></div>
 </div>
-<div class="overlay" id="modal-overlay">
-  <div class="modal" id="modal">
-    <div class="modal-hdr">
-      <h2 id="modal-title">编辑成员</h2>
-      <button class="modal-close" onclick="closeModal()">×</button>
-    </div>
-    <div class="modal-body">
-      <div class="frow">
-        <div class="fg"><label>姓名 *</label><input id="f-name" placeholder="如：周诗锦"></div>
-        <div class="fg"><label>性别</label><select id="f-gender"><option>男</option><option>女</option><option>未知</option></select></div>
-      </div>
-      <div class="frow">
-        <div class="fg"><label>出生日期</label><input id="f-birth" placeholder="如：1978.9.25"></div>
-        <div class="fg"><label>殁于</label><input id="f-death" placeholder="在世留空"></div>
-      </div>
-      <div class="frow">
-        <div class="fg"><label>配偶姓名</label><input id="f-spouse"></div>
-        <div class="fg"><label>配偶出生</label><input id="f-spouseBirth"></div>
-      </div>
-      <div class="frow">
-        <div class="fg"><label>代数</label><select id="f-gen"><option value="1">第一代</option><option value="2">第二代</option><option value="3">第三代</option><option value="4">第四代</option><option value="5">第五代</option><option value="6">第六代</option><option value="7">第七代</option></select></div>
-        <div class="fg"><label>父/母节点</label><select id="f-parent"></select></div>
-      </div>
-      <div class="fg"><label>生平简介</label><textarea id="f-bio" placeholder="记录生平事迹..."></textarea></div>
-    </div>
-    <div class="modal-foot">
-      <button class="btn btn-red" id="btn-del" onclick="delMember()" style="display:none">删除</button>
-      <button class="btn btn-outline" onclick="closeModal()">取消</button>
-      <button class="btn btn-green" onclick="saveMember()">保存</button>
-    </div>
-  </div>
-</div>
+<div class="modal" id="modal"><div class="modal-bg" onclick="closeModal()"></div><div class="modal-box"><div class="modal-hdr"><h2 id="mtitle">编辑</h2><button class="modal-close" onclick="closeModal()">×</button></div><div class="modal-body"><div class="form-row"><div class="form-group"><label>姓名 *</label><input id="f-name"></div><div class="form-group"><label>性别</label><select id="f-gender"><option>男</option><option>女</option><option>未知</option></select></div></div><div class="form-row"><div class="form-group"><label>出生</label><input id="f-birth"></div><div class="form-group"><label>殁于</label><input id="f-death"></div></div><div class="form-row"><div class="form-group"><label>配偶</label><input id="f-spouse"></div><div class="form-group"><label>配偶出生</label><input id="f-spouseBirth"></div></div><div class="form-row"><div class="form-group"><label>代数</label><select id="f-gen"><option value="1">第一代</option><option value="2">第二代</option><option value="3">第三代</option><option value="4">第四代</option><option value="5">第五代</option><option value="6">第六代</option></select></div><div class="form-group"><label>父节点</label><select id="f-parent"></select></div></div><div class="form-group"><label>生平</label><textarea id="f-bio"></textarea></div></div><div class="modal-footer"><button class="btn btn-danger" id="btn-del" onclick="delMember()" style="display:none">删除</button><button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-blue" onclick="saveMember()">保存</button></div></div></div>
 <script>
 const PWD='ZHOU';
-const GC={1:'#8b4513',2:'#4a7c59',3:'#7b68b5',4:'#c9a84c',5:'#4a90d9',6:'#95a5a6',7:'#e8905a'};
-const GN={1:'第一代',2:'第二代',3:'第三代',4:'第四代',5:'第五代',6:'第六代',7:'第七代'};
-const DEFS=[
-{id:1,name:"周筱圃",gender:"男",birth:"",death:"",spouse:"",spouseBirth:"",gen:1,parentId:null,bio:"家族始祖"},
-{id:2,name:"周保乾（靖明）",gender:"男",birth:"1895.1.7",death:"1967.10.31",spouse:"杨淑瑾",spouseBirth:"1895.6.20",gen:2,parentId:1,bio:"元配周氏高夫人（1895.3.3—1923.3.5），继室杨淑瑾（1895.6.20—1975.4.9）"},
-{id:3,name:"周保巽",gender:"男",birth:"",death:"1951.5",spouse:"阮德芝",spouseBirth:"",gen:2,parentId:1,bio:""},
-{id:4,name:"周真伦",gender:"男",birth:"1915.10.28",death:"2007.7.28",spouse:"夏咏诗",spouseBirth:"1926.7.19",gen:3,parentId:2,bio:"夏咏诗殁于1999.9.26"},
-{id:5,name:"周真铨",gender:"男",birth:"1918.7.5",death:"2005.1.2",spouse:"车相辅",spouseBirth:"1918.1.18",gen:3,parentId:2,bio:"车相辅殁于1988.2.1"},
-{id:6,name:"周真纪",gender:"男",birth:"1924.4.3",death:"2012.11.20",spouse:"谢莲芳",spouseBirth:"1928.5.10",gen:3,parentId:2,bio:"谢莲芳殁于2012.12.2"},
-{id:7,name:"周真仁",gender:"男",birth:"1927.5.12",death:"",spouse:"曹玉佩",spouseBirth:"1933.3.20",gen:3,parentId:2,bio:"本表以周真仁收集资料为主线整理"},
-{id:8,name:"周稚容",gender:"女",birth:"1931.5.28",death:"",spouse:"姜清明",spouseBirth:"1931",gen:3,parentId:2,bio:"姜清明殁于2009.1.1"},
-{id:9,name:"周真刚",gender:"男",birth:"",death:"",spouse:"",spouseBirth:"",gen:3,parentId:2,bio:""},
-{id:10,name:"周真义",gender:"男",birth:"1934.5.11",death:"",spouse:"应根娣",spouseBirth:"1934.3.28",gen:3,parentId:2,bio:"应根娣殁于2001.7.1"},
-{id:11,name:"周真礼",gender:"男",birth:"1940.10.31",death:"2009.5.18",spouse:"丁梦瑚",spouseBirth:"1950.2.28",gen:3,parentId:2,bio:""},
-{id:12,name:"周绍容",gender:"女",birth:"",death:"",spouse:"冯国华",spouseBirth:"",gen:3,parentId:3,bio:""},
-{id:13,name:"周亚荣",gender:"未知",birth:"",death:"",spouse:"",spouseBirth:"",gen:3,parentId:3,bio:""},
-{id:14,name:"周凯莉",gender:"女",birth:"1947.9.16",death:"",spouse:"陈天本",spouseBirth:"1942.11.2",gen:4,parentId:4,bio:""},
-{id:15,name:"周晓茜",gender:"女",birth:"1948.11.2",death:"",spouse:"",spouseBirth:"",gen:4,parentId:4,bio:""},
-{id:16,name:"周元放",gender:"男",birth:"1951.1.3",death:"",spouse:"冯嘉陵",spouseBirth:"1955.5.19",gen:4,parentId:4,bio:""},
-{id:17,name:"周勤",gender:"女",birth:"1954.11.28",death:"",spouse:"潘奠平",spouseBirth:"1954.2.22",gen:4,parentId:4,bio:""},
-{id:18,name:"周吉",gender:"女",birth:"1956.2.12",death:"",spouse:"马季",spouseBirth:"1955.5.24",gen:4,parentId:4,bio:""},
-{id:19,name:"周诗源",gender:"男",birth:"1941.8.19",death:"",spouse:"白丽菊",spouseBirth:"1947.6.13",gen:4,parentId:5,bio:""},
-{id:20,name:"周诗萍",gender:"女",birth:"1943.12.13",death:"",spouse:"",spouseBirth:"",gen:4,parentId:5,bio:"子女：萍、蓉"},
-{id:21,name:"周诗濬",gender:"女",birth:"1946.3.26",death:"",spouse:"徐国柱",spouseBirth:"",gen:4,parentId:5,bio:""},
-{id:22,name:"周诗慧",gender:"女",birth:"1948.9.18",death:"",spouse:"彭利民",spouseBirth:"",gen:4,parentId:5,bio:""},
-{id:23,name:"周诗成",gender:"男",birth:"1950.11.3",death:"",spouse:"熊斌辉",spouseBirth:"1950.12.23",gen:4,parentId:5,bio:""},
-{id:24,name:"周诗敏",gender:"女",birth:"1953.4.4",death:"",spouse:"杨明斌",spouseBirth:"",gen:4,parentId:5,bio:""},
-{id:25,name:"周诗娥",gender:"女",birth:"1948.5.17",death:"",spouse:"谭筑森",spouseBirth:"1948.5.7",gen:4,parentId:6,bio:""},
-{id:26,name:"周诗楫",gender:"男",birth:"1949.8.15",death:"",spouse:"于波",spouseBirth:"1950.5.28",gen:4,parentId:6,bio:""},
-{id:27,name:"周诗荣",gender:"男",birth:"1953.6.23",death:"",spouse:"彭宏",spouseBirth:"1959.11.6",gen:4,parentId:6,bio:""},
-{id:28,name:"周诗恒",gender:"男",birth:"1957.10.4",death:"",spouse:"陈梅芬",spouseBirth:"1960.3.5",gen:4,parentId:6,bio:""},
-{id:29,name:"周诗勤",gender:"男",birth:"1960.10.8",death:"",spouse:"蔡敏",spouseBirth:"1961.10.19",gen:4,parentId:6,bio:""},
-{id:30,name:"周诗模",gender:"男",birth:"1963.1.8",death:"",spouse:"李萍",spouseBirth:"1966.5.6",gen:4,parentId:6,bio:""},
-{id:31,name:"周诗能",gender:"男",birth:"1965.3.6",death:"",spouse:"温美惠",spouseBirth:"1968.7.10",gen:4,parentId:6,bio:""},
-{id:32,name:"周洁",gender:"女",birth:"1969.5.2",death:"",spouse:"唐强",spouseBirth:"1965.1.29",gen:4,parentId:10,bio:""},
-{id:33,name:"周钰",gender:"女",birth:"1976.4.19",death:"",spouse:"李云翔",spouseBirth:"1977.12.6",gen:4,parentId:10,bio:""},
-{id:34,name:"周诗锦",gender:"男",birth:"1978.9.25",death:"",spouse:"罗淞元",spouseBirth:"1987.3.14",gen:4,parentId:10,bio:""},
-{id:35,name:"冰汝",gender:"女",birth:"",death:"",spouse:"张嘉庭",spouseBirth:"",gen:4,parentId:12,bio:""},
-{id:36,name:"冰鸽",gender:"男",birth:"",death:"",spouse:"赵兴平",spouseBirth:"",gen:4,parentId:12,bio:""},
-{id:37,name:"陈挺",gender:"男",birth:"1978.11.3",death:"",spouse:"肖旭红",spouseBirth:"1978",gen:5,parentId:14,bio:""},
-{id:38,name:"周枢",gender:"男",birth:"1982.12.3",death:"",spouse:"蒋春晖",spouseBirth:"1983.2.16",gen:5,parentId:16,bio:""},
-{id:39,name:"潘浚",gender:"男",birth:"1991.4.15",death:"",spouse:"",spouseBirth:"",gen:5,parentId:17,bio:""},
-{id:40,name:"马秋晨",gender:"男",birth:"1986.8.30",death:"",spouse:"",spouseBirth:"",gen:5,parentId:18,bio:""},
-{id:41,name:"旭",gender:"未知",birth:"",death:"",spouse:"",spouseBirth:"",gen:5,parentId:19,bio:""},
-{id:42,name:"适",gender:"未知",birth:"",death:"",spouse:"",spouseBirth:"",gen:5,parentId:19,bio:""},
-{id:43,name:"玉",gender:"未知",birth:"",death:"",spouse:"",spouseBirth:"",gen:5,parentId:19,bio:""},
-{id:44,name:"周书景",gender:"未知",birth:"",death:"",spouse:"",spouseBirth:"",gen:5,parentId:22,bio:""},
-{id:45,name:"周书丽",gender:"未知",birth:"",death:"",spouse:"",spouseBirth:"",gen:5,parentId:22,bio:""},
-{id:46,name:"盈峰",gender:"男",birth:"1969.2.11",death:"",spouse:"",spouseBirth:"",gen:5,parentId:25,bio:""},
-{id:47,name:"谭蓉",gender:"女",birth:"1973.11.9",death:"",spouse:"",spouseBirth:"",gen:5,parentId:25,bio:""},
-{id:48,name:"谭林",gender:"男",birth:"1980.2.17",death:"",spouse:"",spouseBirth:"",gen:5,parentId:25,bio:""},
-{id:49,name:"周莉",gender:"女",birth:"1973.12.6",death:"",spouse:"",spouseBirth:"",gen:5,parentId:26,bio:""},
-{id:50,name:"韩涛",gender:"男",birth:"1974.5.20",death:"",spouse:"",spouseBirth:"",gen:5,parentId:26,bio:""},
-{id:51,name:"周书剑",gender:"男",birth:"1985.3.18",death:"",spouse:"",spouseBirth:"",gen:5,parentId:27,bio:""},
-{id:52,name:"周书雅",gender:"女",birth:"1992.3.7",death:"",spouse:"",spouseBirth:"",gen:5,parentId:27,bio:""},
-{id:53,name:"周书平",gender:"未知",birth:"1990.11.13",death:"",spouse:"",spouseBirth:"",gen:5,parentId:28,bio:""},
-{id:54,name:"周书禾",gender:"未知",birth:"1994.2.23",death:"",spouse:"",spouseBirth:"",gen:5,parentId:28,bio:""},
-{id:55,name:"周书安",gender:"未知",birth:"1991.4.19",death:"",spouse:"",spouseBirth:"",gen:5,parentId:29,bio:""},
-{id:56,name:"周书田",gender:"未知",birth:"1996.7.5",death:"",spouse:"",spouseBirth:"",gen:5,parentId:29,bio:""},
-{id:57,name:"兰兰",gender:"未知",birth:"",death:"",spouse:"",spouseBirth:"",gen:5,parentId:30,bio:""},
-{id:58,name:"书筑",gender:"未知",birth:"",death:"",spouse:"",spouseBirth:"",gen:5,parentId:30,bio:""},
-{id:59,name:"周书永",gender:"未知",birth:"1996.1.5",death:"",spouse:"",spouseBirth:"",gen:5,parentId:31,bio:""},
-{id:60,name:"周书玄",gender:"未知",birth:"1999.7.23",death:"",spouse:"",spouseBirth:"",gen:5,parentId:31,bio:""},
-{id:61,name:"唐缬菲",gender:"女",birth:"1997.1.17",death:"",spouse:"",spouseBirth:"",gen:5,parentId:32,bio:""},
-{id:62,name:"浩恺",gender:"男",birth:"2010.9.16",death:"",spouse:"",spouseBirth:"",gen:5,parentId:33,bio:""},
-{id:63,name:"周书泽",gender:"男",birth:"2012.4.20",death:"",spouse:"",spouseBirth:"",gen:5,parentId:34,bio:""},
-{id:64,name:"姜涛",gender:"男",birth:"1956.12.6",death:"",spouse:"郝凤英",spouseBirth:"1959.9.11",gen:5,parentId:8,bio:""},
-{id:65,name:"姜瑛",gender:"女",birth:"1957.11.2",death:"",spouse:"支新农",spouseBirth:"1953.5.27",gen:5,parentId:8,bio:""},
-{id:66,name:"姜虹",gender:"女",birth:"1959.4.20",death:"",spouse:"郝洪光",spouseBirth:"1959.9.10",gen:5,parentId:8,bio:""},
-{id:67,name:"姜妮",gender:"女",birth:"1961.11.4",death:"",spouse:"",spouseBirth:"",gen:5,parentId:8,bio:""},
-{id:68,name:"陈彤秋芷",gender:"未知",birth:"2012.10.8",death:"",spouse:"",spouseBirth:"",gen:6,parentId:37,bio:""}
+const GCOL={1:'#8b4513',2:'#4a7c59',3:'#7b68b5',4:'#c9a84c',5:'#4a90d9',6:'#95a5a6'};
+const GNAM={1:'第一代',2:'第二代',3:'第三代',4:'第四代',5:'第五代',6:'第六代'};
+let M=[],NI=69,EDIT=null,FILTER='all',SCALE=1,TRANSX=0,TRANSY=0,DRAGGING=false,DRAGSTART={x:0,y:0},TOUCHING=false;
+const DEF=[
+{id:1,n:"周筱圃",g:"男",b:"",d:"",s:"",sb:"",gen:1,p:null,bio:""},
+{id:2,n:"周保乾（靖明）",g:"男",b:"1895.1.7",d:"1967.10.31",s:"杨淑瑾",sb:"1895.6.20",gen:2,p:1,bio:"元配周氏高夫人（1895.3.3—1923.3.5），继室杨淑瑾（1895.6.20—1975.4.9）"},
+{id:3,n:"周保巽",g:"男",b:"",d:"1951.5",s:"阮德芝",sb:"",gen:2,p:1,bio:""},
+{id:4,n:"周真伦",g:"男",b:"1915.10.28",d:"2007.7.28",s:"夏咏诗",sb:"1926.7.19",gen:3,p:2,bio:""},
+{id:5,n:"周真铨",g:"男",b:"1918.7.5",d:"2005.1.2",s:"车相辅",sb:"1918.1.18",gen:3,p:2,bio:""},
+{id:6,n:"周真纪",g:"男",b:"1924.4.3",d:"2012.11.20",s:"谢莲芳",sb:"1928.5.10",gen:3,p:2,bio:""},
+{id:7,n:"周真仁",g:"男",b:"1927.5.12",d:"",s:"曹玉佩",sb:"1933.3.20",gen:3,p:2,bio:""},
+{id:8,n:"周稚容",g:"女",b:"1931.5.28",d:"",s:"姜清明",sb:"1931",gen:3,p:2,bio:""},
+{id:9,n:"周真刚",g:"男",b:"",d:"",s:"",sb:"",gen:3,p:2,bio:""},
+{id:10,n:"周真义",g:"男",b:"1934.5.11",d:"",s:"应根娣",sb:"1934.3.28",gen:3,p:2,bio:""},
+{id:11,n:"周真礼",g:"男",b:"1940.10.31",d:"2009.5.18",s:"丁梦瑚",sb:"1950.2.28",gen:3,p:2,bio:""},
+{id:12,n:"周绍容",g:"女",b:"",d:"",s:"冯国华",sb:"",gen:3,p:3,bio:""},
+{id:13,n:"周亚荣",g:"未知",b:"",d:"",s:"",sb:"",gen:3,p:3,bio:""},
+{id:14,n:"周凯莉",g:"女",b:"1947.9.16",d:"",s:"陈天本",sb:"1942.11.2",gen:4,p:4,bio:""},
+{id:15,n:"周晓茜",g:"女",b:"1948.11.2",d:"",s:"",sb:"",gen:4,p:4,bio:""},
+{id:16,n:"周元放",g:"男",b:"1951.1.3",d:"",s:"冯嘉陵",sb:"1955.5.19",gen:4,p:4,bio:""},
+{id:17,n:"周勤",g:"女",b:"1954.11.28",d:"",s:"潘奠平",sb:"1954.2.22",gen:4,p:4,bio:""},
+{id:18,n:"周吉",g:"女",b:"1956.2.12",d:"",s:"马季",sb:"1955.5.24",gen:4,p:4,bio:""},
+{id:19,n:"周诗源",g:"男",b:"1941.8.19",d:"",s:"白丽菊",sb:"1947.6.13",gen:4,p:5,bio:""},
+{id:20,n:"周诗萍",g:"女",b:"1943.12.13",d:"",s:"",sb:"",gen:4,p:5,bio:""},
+{id:21,n:"周诗濬",g:"女",b:"1946.3.26",d:"",s:"徐国柱",sb:"",gen:4,p:5,bio:""},
+{id:22,n:"周诗慧",g:"女",b:"1948.9.18",d:"",s:"彭利民",sb:"",gen:4,p:5,bio:""},
+{id:23,n:"周诗成",g:"男",b:"1950.11.3",d:"",s:"熊斌辉",sb:"1950.12.23",gen:4,p:5,bio:""},
+{id:24,n:"周诗敏",g:"女",b:"1953.4.4",d:"",s:"杨明斌",sb:"",gen:4,p:5,bio:""},
+{id:25,n:"周诗娥",g:"女",b:"1948.5.17",d:"",s:"谭筑森",sb:"1948.5.7",gen:4,p:6,bio:""},
+{id:26,n:"周诗楫",g:"男",b:"1949.8.15",d:"",s:"于波",sb:"1950.5.28",gen:4,p:6,bio:""},
+{id:27,n:"周诗荣",g:"男",b:"1953.6.23",d:"",s:"彭宏",sb:"1959.11.6",gen:4,p:6,bio:""},
+{id:28,n:"周诗恒",g:"男",b:"1957.10.4",d:"",s:"陈梅芬",sb:"1960.3.5",gen:4,p:6,bio:""},
+{id:29,n:"周诗勤",g:"男",b:"1960.10.8",d:"",s:"蔡敏",sb:"1961.10.19",gen:4,p:6,bio:""},
+{id:30,n:"周诗模",g:"男",b:"1963.1.8",d:"",s:"李萍",sb:"1966.5.6",gen:4,p:6,bio:""},
+{id:31,n:"周诗能",g:"男",b:"1965.3.6",d:"",s:"温美惠",sb:"1968.7.10",gen:4,p:6,bio:""},
+{id:32,n:"周洁",g:"女",b:"1969.5.2",d:"",s:"唐强",sb:"1965.1.29",gen:4,p:10,bio:""},
+{id:33,n:"周钰",g:"女",b:"1976.4.19",d:"",s:"李云翔",sb:"1977.12.6",gen:4,p:10,bio:""},
+{id:34,n:"周诗锦",g:"男",b:"1978.9.25",d:"",s:"罗淞元",sb:"1987.3.14",gen:4,p:10,bio:""},
+{id:35,n:"冰汝",g:"女",b:"",d:"",s:"张嘉庭",sb:"",gen:4,p:12,bio:""},
+{id:36,n:"冰鸽",g:"男",b:"",d:"",s:"赵兴平",sb:"",gen:4,p:12,bio:""},
+{id:37,n:"陈挺",g:"男",b:"1978.11.3",d:"",s:"肖旭红",sb:"1978",gen:5,p:14,bio:""},
+{id:38,n:"周枢",g:"男",b:"1982.12.3",d:"",s:"蒋春晖",sb:"1983.2.16",gen:5,p:16,bio:""},
+{id:39,n:"潘浚",g:"男",b:"1991.4.15",d:"",s:"",sb:"",gen:5,p:17,bio:""},
+{id:40,n:"马秋晨",g:"男",b:"1986.8.30",d:"",s:"",sb:"",gen:5,p:18,bio:""},
+{id:41,n:"旭",g:"未知",b:"",d:"",s:"",sb:"",gen:5,p:19,bio:""},
+{id:42,n:"适",g:"未知",b:"",d:"",s:"",sb:"",gen:5,p:19,bio:""},
+{id:43,n:"玉",g:"未知",b:"",d:"",s:"",sb:"",gen:5,p:19,bio:""},
+{id:44,n:"周书景",g:"未知",b:"",d:"",s:"",sb:"",gen:5,p:22,bio:""},
+{id:45,n:"周书丽",g:"未知",b:"",d:"",s:"",sb:"",gen:5,p:22,bio:""},
+{id:46,n:"盈峰",g:"男",b:"1969.2.11",d:"",s:"",sb:"",gen:5,p:25,bio:""},
+{id:47,n:"谭蓉",g:"女",b:"1973.11.9",d:"",s:"",sb:"",gen:5,p:25,bio:""},
+{id:48,n:"谭林",g:"男",b:"1980.2.17",d:"",s:"",sb:"",gen:5,p:25,bio:""},
+{id:49,n:"周莉",g:"女",b:"1973.12.6",d:"",s:"",sb:"",gen:5,p:26,bio:""},
+{id:50,n:"韩涛",g:"男",b:"1974.5.20",d:"",s:"",sb:"",gen:5,p:26,bio:""},
+{id:51,n:"周书剑",g:"男",b:"1985.3.18",d:"",s:"",sb:"",gen:5,p:27,bio:""},
+{id:52,n:"周书雅",g:"女",b:"1992.3.7",d:"",s:"",sb:"",gen:5,p:27,bio:""},
+{id:53,n:"周书平",g:"未知",b:"1990.11.13",d:"",s:"",sb:"",gen:5,p:28,bio:""},
+{id:54,n:"周书禾",g:"未知",b:"1994.2.23",d:"",s:"",sb:"",gen:5,p:28,bio:""},
+{id:55,n:"周书安",g:"未知",b:"1991.4.19",d:"",s:"",sb:"",gen:5,p:29,bio:""},
+{id:56,n:"周书田",g:"未知",b:"1996.7.5",d:"",s:"",sb:"",gen:5,p:29,bio:""},
+{id:57,n:"兰兰",g:"未知",b:"",d:"",s:"",sb:"",gen:5,p:30,bio:""},
+{id:58,n:"书筑",g:"未知",b:"",d:"",s:"",sb:"",gen:5,p:30,bio:""},
+{id:59,n:"周书永",g:"未知",b:"1996.1.5",d:"",s:"",sb:"",gen:5,p:31,bio:""},
+{id:60,n:"周书玄",g:"未知",b:"1999.7.23",d:"",s:"",sb:"",gen:5,p:31,bio:""},
+{id:61,n:"唐缬菲",g:"女",b:"1997.1.17",d:"",s:"",sb:"",gen:5,p:32,bio:""},
+{id:62,n:"浩恺",g:"男",b:"2010.9.16",d:"",s:"",sb:"",gen:5,p:33,bio:""},
+{id:63,n:"周书泽",g:"男",b:"2012.4.20",d:"",s:"",sb:"",gen:5,p:34,bio:""},
+{id:64,n:"姜涛",g:"男",b:"1956.12.6",d:"",s:"郝凤英",sb:"1959.9.11",gen:5,p:8,bio:""},
+{id:65,n:"姜瑛",g:"女",b:"1957.11.2",d:"",s:"支新农",sb:"1953.5.27",gen:5,p:8,bio:""},
+{id:66,n:"姜虹",g:"女",b:"1959.4.20",d:"",s:"郝洪光",sb:"1959.9.10",gen:5,p:8,bio:""},
+{id:67,n:"姜妮",g:"女",b:"1961.11.4",d:"",s:"",sb:"",gen:5,p:8,bio:""},
+{id:68,n:"陈彤秋芷",g:"未知",b:"2012.10.8",d:"",s:"",sb:"",gen:6,p:37,bio:""}
 ];
-let members=[],nextId=69,editId=null,filterMode='all',dragId=null;
-let touchDragEl=null,touchDragGhost=null,touchDropTarget=null;
-
-function doLogin(){
-  if(document.getElementById('pwd').value===PWD){
-    document.getElementById('login-page').style.display='none';
-    document.getElementById('app').style.display='block';
-    const s=localStorage.getItem('zhou-v3');
-    if(s){try{const d=JSON.parse(s);members=d.m;nextId=d.n||69;}catch(e){reset();}}
-    else{reset();}
-    render();
-  }else{document.getElementById('lerr').style.display='block';}
-}
-document.getElementById('pwd').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
-function doLogout(){document.getElementById('login-page').style.display='flex';document.getElementById('app').style.display='none';}
-function reset(){members=JSON.parse(JSON.stringify(DEFS));}
-function save(){localStorage.setItem('zhou-v3',JSON.stringify({m:members,n:nextId}));}
-
-function setFilter(m){
-  filterMode=m;
-  ['all','zhou','nonzhou'].forEach(f=>{
-    document.getElementById('f-'+f).classList.toggle('on',f===m);
-  });
-  render();
-}
-
-function filterMembers(){
-  if(filterMode==='all')return members;
-  if(filterMode==='zhou')return members.filter(m=>m.name.startsWith('周')||
-    (m.parentId&&members.find(p=>p.id===m.parentId&&p.name.startsWith('周'))));
-  if(filterMode==='nonzhou')return members.filter(m=>!m.name.startsWith('周'));
-  return members;
-}
-
-function switchTab(t){
-  document.getElementById('tab-tree').classList.toggle('on',t==='tree');
-  document.getElementById('tab-gen').classList.toggle('on',t==='gen');
-  document.getElementById('tree-view').style.display=t==='tree'?'block':'none';
-  document.getElementById('gen-view').style.display=t==='gen'?'block':'none';
-}
-
+function login(){if(document.getElementById('pwd').value===PWD){document.getElementById('login-page').style.display='none';document.getElementById('app').style.display='block';const s=localStorage.getItem('zhou');if(s){try{const d=JSON.parse(s);M=d.M;NI=d.NI;}catch(e){M=JSON.parse(JSON.stringify(DEF));}}else{M=JSON.parse(JSON.stringify(DEF));}render();}else{document.getElementById('login-err').style.display='block';}}
+document.getElementById('pwd').onkeydown=e=>{if(e.key==='Enter')login();};
+function logout(){document.getElementById('login-page').style.display='flex';document.getElementById('app').style.display='none';}
+function save(){localStorage.setItem('zhou',JSON.stringify({M,NI}));}
+function switchTab(t){document.getElementById('tab-tree').classList.toggle('on',t==='tree');document.getElementById('tab-gen').classList.toggle('on',t==='gen');document.getElementById('tree-view').style.display=t==='tree'?'block':'none';document.getElementById('gen-view').style.display=t==='gen'?'block':'none';}
+function setFilter(f){FILTER=f;document.getElementById('btn-all').classList.toggle('on',f==='all');document.getElementById('btn-zhou').classList.toggle('on',f==='zhou');render();}
 function render(){renderTree();renderGen();}
-
-// ---- TREE ----
-function renderTree(){
-  const canvas=document.getElementById('tree-canvas');
-  canvas.innerHTML='';
-  const vis=filterMembers();
-  const visIds=new Set(vis.map(m=>m.id));
-  const roots=vis.filter(m=>!m.parentId||!visIds.has(m.parentId));
-  roots.forEach(r=>canvas.appendChild(buildNode(r,vis)));
-}
-
-function buildNode(m,vis){
-  const children=vis.filter(c=>c.parentId===m.id);
-  const wrap=document.createElement('div');
-  wrap.className='node';
-
-  const card=document.createElement('div');
-  card.className='card';
-  card.style.borderLeftColor=GC[m.gen]||'#ccc';
-  card.dataset.id=m.id;
-
-  const badge=document.createElement('span');
-  badge.className='gen-badge';
-  badge.textContent='第'+m.gen+'代';
-  badge.style.background=GC[m.gen]||'#888';
-
-  card.innerHTML=`<div class="cname">${m.name}</div>`+
-    (m.birth||m.death?`<div class="cdates">${m.birth||''}${m.death?` — 殁${m.death}`:''}</div>`:'')+
-    (m.spouse?`<div class="cspouse">♥ ${m.spouse}${m.spouseBirth?' ('+m.spouseBirth+')':''}</div>`:'')+
-    (m.bio?`<div class="cbio">${m.bio}</div>`:'');
-  card.prepend(badge);
-
-  // Click to edit
-  card.addEventListener('click',e=>{if(!dragId)openEdit(m.id);});
-
-  // Desktop drag
-  card.draggable=true;
-  card.addEventListener('dragstart',e=>{dragId=m.id;card.classList.add('drag-source');e.dataTransfer.effectAllowed='move';});
-  card.addEventListener('dragend',()=>{dragId=null;card.classList.remove('drag-source');});
-  card.addEventListener('dragover',e=>{e.preventDefault();card.classList.add('drop-target');});
-  card.addEventListener('dragleave',()=>card.classList.remove('drop-target'));
-  card.addEventListener('drop',e=>{
-    e.preventDefault();e.stopPropagation();
-    card.classList.remove('drop-target');
-    if(dragId&&dragId!==m.id){
-      const dn=members.find(x=>x.id===dragId);
-      if(dn&&!confirm(`将「${dn.name}」移到「${m.name}」的子节点？`))return;
-      if(dn){dn.parentId=m.id;save();render();}
-    }
-    dragId=null;
-  });
-
-  // Touch drag (long press)
-  let lpt=null;
-  card.addEventListener('touchstart',e=>{
-    lpt=setTimeout(()=>{
-      dragId=m.id;
-      card.classList.add('drag-source');
-      // Create ghost
-      touchDragGhost=card.cloneNode(true);
-      touchDragGhost.className='drag-ghost card';
-      touchDragGhost.style.width=card.offsetWidth+'px';
-      touchDragGhost.style.borderLeftColor=GC[m.gen]||'#ccc';
-      document.body.appendChild(touchDragGhost);
-      const t=e.touches[0];
-      touchDragGhost.style.left=(t.clientX-60)+'px';
-      touchDragGhost.style.top=(t.clientY-30)+'px';
-      navigator.vibrate&&navigator.vibrate(30);
-    },500);
-  },{passive:true});
-  card.addEventListener('touchmove',e=>{
-    clearTimeout(lpt);
-    if(!dragId||!touchDragGhost)return;
-    e.preventDefault();
-    const t=e.touches[0];
-    touchDragGhost.style.left=(t.clientX-60)+'px';
-    touchDragGhost.style.top=(t.clientY-30)+'px';
-    // Find drop target
-    touchDragGhost.style.display='none';
-    const el=document.elementFromPoint(t.clientX,t.clientY);
-    touchDragGhost.style.display='';
-    if(touchDropTarget)touchDropTarget.classList.remove('drop-target');
-    touchDropTarget=el?el.closest('.card'):null;
-    if(touchDropTarget&&parseInt(touchDropTarget.dataset.id)!==dragId)
-      touchDropTarget.classList.add('drop-target');
-  },{passive:false});
-  card.addEventListener('touchend',e=>{
-    clearTimeout(lpt);
-    if(touchDragGhost){touchDragGhost.remove();touchDragGhost=null;}
-    if(touchDropTarget){touchDropTarget.classList.remove('drop-target');}
-    card.classList.remove('drag-source');
-    if(dragId&&touchDropTarget){
-      const targetId=parseInt(touchDropTarget.dataset.id);
-      if(targetId&&targetId!==dragId){
-        const dn=members.find(x=>x.id===dragId);
-        const tn=members.find(x=>x.id===targetId);
-        if(dn&&tn&&confirm(`将「${dn.name}」移到「${tn.name}」的子节点？`)){
-          dn.parentId=targetId;save();render();
-        }
-      }
-    }
-    dragId=null;touchDropTarget=null;
-  });
-
-  wrap.appendChild(card);
-
-  if(children.length>0){
-    const vl=document.createElement('div');vl.className='vline';wrap.appendChild(vl);
-    const row=document.createElement('div');row.className='children-row';
-    if(children.length===1){row.style.cssText='display:flex;justify-content:center;';}
-    children.forEach(c=>{
-      const col=document.createElement('div');col.className='child-col';
-      col.appendChild(buildNode(c,vis));
-      row.appendChild(col);
-    });
-    wrap.appendChild(row);
-  }
-  return wrap;
-}
-// ---- GEN VIEW ----
-function renderGen(){
-  const container=document.getElementById('gen-view');
-  container.innerHTML='';
-  const vis=filterMembers();
-  const maxG=Math.max(...vis.map(m=>m.gen));
-  for(let g=1;g<=maxG;g++){
-    const ms=vis.filter(m=>m.gen===g);if(!ms.length)continue;
-    const sec=document.createElement('div');sec.className='gen-sec';
-    const hdr=document.createElement('div');hdr.className='gen-hdr';
-    hdr.innerHTML=`<div class="gen-dot" style="background:${GC[g]}"></div>${GN[g]}（${ms.length}人）`;
-    sec.appendChild(hdr);
-    const cards=document.createElement('div');cards.className='gen-cards';
-    ms.forEach(m=>{
-      const c=document.createElement('div');c.className='gcard';
-      c.style.borderLeftColor=GC[m.gen]||'#ccc';
-      const p=members.find(x=>x.id===m.parentId);
-      c.innerHTML=`<div class="gname">${m.name}</div>`+
-        (m.birth?`<div class="gdates">生 ${m.birth}${m.death?' 殁 '+m.death:''}</div>`:'')+
-        (m.spouse?`<div class="gspouse">♥ ${m.spouse}</div>`:'')+
-        (p?`<div class="gparent">↑ ${p.name}</div>`:'');
-      c.onclick=()=>openEdit(m.id);
-      cards.appendChild(c);
-    });
-    sec.appendChild(cards);container.appendChild(sec);
-  }
-}
-
-// ---- MODAL ----
-function fillParentSelect(selfId,selParentId){
-  const sel=document.getElementById('f-parent');
-  sel.innerHTML='<option value="">— 无（根节点）—</option>';
-  members.filter(m=>m.id!==selfId).sort((a,b)=>a.gen-b.gen).forEach(m=>{
-    const o=document.createElement('option');
-    o.value=m.id;o.textContent=`${m.name}（第${m.gen}代）`;
-    if(m.id===selParentId)o.selected=true;
-    sel.appendChild(o);
-  });
-}
-
-function openEdit(id){
-  const m=members.find(x=>x.id===id);if(!m)return;
-  editId=id;
-  document.getElementById('modal-title').textContent='编辑：'+m.name;
-  document.getElementById('f-name').value=m.name;
-  document.getElementById('f-gender').value=m.gender;
-  document.getElementById('f-birth').value=m.birth;
-  document.getElementById('f-death').value=m.death;
-  document.getElementById('f-spouse').value=m.spouse;
-  document.getElementById('f-spouseBirth').value=m.spouseBirth;
-  document.getElementById('f-gen').value=m.gen;
-  document.getElementById('f-bio').value=m.bio;
-  fillParentSelect(id,m.parentId);
-  document.getElementById('btn-del').style.display='inline-block';
-  document.getElementById('modal-overlay').classList.add('open');
-}
-
-function openAdd(){
-  editId=null;
-  document.getElementById('modal-title').textContent='添加成员';
-  ['f-name','f-birth','f-death','f-spouse','f-spouseBirth','f-bio'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('f-gender').value='男';
-  document.getElementById('f-gen').value='5';
-  fillParentSelect(null,null);
-  document.getElementById('btn-del').style.display='none';
-  document.getElementById('modal-overlay').classList.add('open');
-}
-
-function closeModal(){document.getElementById('modal-overlay').classList.remove('open');}
-
-function saveMember(){
-  const name=document.getElementById('f-name').value.trim();
-  if(!name){alert('请填写姓名');return;}
-  const pv=document.getElementById('f-parent').value;
-  const data={name,gender:document.getElementById('f-gender').value,
-    birth:document.getElementById('f-birth').value.trim(),
-    death:document.getElementById('f-death').value.trim(),
-    spouse:document.getElementById('f-spouse').value.trim(),
-    spouseBirth:document.getElementById('f-spouseBirth').value.trim(),
-    gen:parseInt(document.getElementById('f-gen').value),
-    parentId:pv?parseInt(pv):null,
-    bio:document.getElementById('f-bio').value.trim()};
-  if(editId){Object.assign(members.find(m=>m.id===editId),data);}
-  else{members.push({id:nextId++,...data});}
-  save();closeModal();render();
-}
-
-function delMember(){
-  if(!editId)return;
-  const m=members.find(x=>x.id===editId);
-  if(!confirm(`删除「${m.name}」？其子节点将变为根节点。`))return;
-  members.filter(c=>c.parentId===editId).forEach(c=>c.parentId=m.parentId);
-  members=members.filter(x=>x.id!==editId);
-  save();closeModal();render();
-}
-
-// ---- EXPORT ----
-function exportCSV(){
-  const BOM='\uFEFF';
-  const hdr=['姓名','性别','出生','殁于','配偶','配偶出生','代数','父节点','生平'].join(',');
-  const rows=members.map(m=>{
-    const p=members.find(x=>x.id===m.parentId);
-    return[m.name,m.gender,m.birth,m.death,m.spouse,m.spouseBirth,
-      '第'+m.gen+'代',p?p.name:'',m.bio].map(v=>`"${(v||'').replace(/"/g,'""')}"`).join(',');
-  });
-  const csv=BOM+[hdr,...rows].join('\n');
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
-  a.download='周氏家谱.csv';a.click();
-}
-
-// Close overlay on bg click
-document.getElementById('modal-overlay').addEventListener('click',e=>{
-  if(e.target===document.getElementById('modal-overlay'))closeModal();
-});
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+function renderTree(){const c=document.getElementById('tree-canvas');c.innerHTML='';c.style.transform=`translate(${TRANSX}px,${TRANSY}px) scale(${SCALE})`;const roots=M.filter(m=>!m.p);roots.forEach(r=>c.appendChild(buildNode(r)));}
+function buildNode(m){if(FILTER==='zhou'&&!m.n.includes('周'))return null;const node=document.createElement('div');node.className='node';const card=document.createElement('div');card.className=`card gen-${m.gen}`;card.innerHTML=`<span class="gen-badge">${m.gen}</span><div class="cname">${m.n}</div>`+(m.b||m.d?`<div class="cdates">${m.b||''}${m.d?' 殁'+m.d:''}</div>`:'')+(m.s?`<div class="cspouse">♥ ${m.s}</div>`:'');card.onclick=()=>openEdit(m.id);
+// Drag
+let dragT;
+card.onmousedown=e=>{if(e.button!==0)return;dragT=setTimeout(()=>{startDrag(m.id,e);},200);};
+card.onmouseup=()=>{clearTimeout(dragT);};
+card.ontouchstart=e=>{dragT=setTimeout(()=>{startDrag(m.id,e.touches[0]);},300);};
+card.ontouchend=()=>{clearTimeout(dragT);};
+node.appendChild(card);
+const children=M.filter(c=>c.p===m.id);
+if(children.length>0){const v=document.createElement('div');v.className='vline';node.appendChild(v);const row=document.createElement('div');row.className='children-row';children.forEach(ch=>{const col=document.createElement('div');col.className='child-col';col.appendChild(buildNode(ch));row.appendChild(col);});node.appendChild(row);}
+return node;}
+function startDrag(id,e){if(TOUCHING)return;TOUCHING=true;const card=document.querySelector(`.card[onclick*="${id}"]`);if(card){card.classList.add('dragging');document.body.onmousemove=onDragMove;document.body.onmouseup=onDragEnd;document.body.ontouchmove=onDragTouchMove;document.body.ontouchend=onDragTouchEnd;}}
+function onDragMove(e){if(!e.target.closest('.card'))return;const card=e.target.closest('.card');if(card)card.classList.add('drop-target');}
+function onDragEnd(e){clearDrag();const card=e.target.closest('.card');if(card&&card.classList.contains('drop-target')){const tid=parseInt(card.onclick.toString().match(/\d+/)[0]);if(tid!==EDIT){const dm=M.find(x=>x.id===EDIT);if(dm&&confirm(`将 ${dm.n} 移到 ${M.find(x=>x.id===tid).n} 下？`)){dm.p=tid;save();render();}}}
+function onDragTouchMove(e){const t=e.touches[0];const el=document.elementFromPoint(t.clientX,t.clientY);if(el){const card=el.closest('.card');if(card)card.classList.add('drop-target');}}
+function onDragTouchEnd(e){clearDrag();const t=e.changedTouches[0];const el=document.elementFromPoint(t.clientX,t.clientY);if(el){const card=el.closest('.card');if(card&&card.classList.contains('drop-target')){const tid=parseInt(card.onclick.toString().match(/\d+/)[0]);if(tid!==EDIT){const dm=M.find(x=>x.id===EDIT);if(dm&&confirm(`将 ${dm.n} 移到 ${M.find(x=>x.id===tid).n} 下？`)){dm.p=tid;save();render();}}}}
+function clearDrag(){TOUCHING=false;document.body.onmousemove=null;document.body.onmouseup=null;document.body.ontouchmove=null;document.body.ontouchend=null;document.querySelectorAll('.card').forEach(c=>c.classList.remove('dragging','drop-target'));}
+function renderGen(){const c=document.getElementById('gen-view');c.innerHTML='';const max=Math.max(...M.map(m=>m.gen));for(let g=1;g<=max;g++){const ms=M.filter(m=>m.gen===g);if(!ms.length)continue;const sec=document.createElement('div');sec.className='gen-sec';sec.innerHTML=`<div class="gen-hdr"><div class="gen-dot" style="background:${GCOL[g]}"></div><div>${GNAM[g]} (${ms.length}人)</div></div><div class="gen-cards"></div>`;const cards=sec.querySelector('.gen-cards');ms.forEach(m=>{const gc=document.createElement('div');gc.className=`gcard gen-${m.gen}`;gc.style.borderLeftColor=GCOL[m.gen];const p=M.find(x=>x.id===m.p);gc.innerHTML=`<div class="gname">${m.n}</div>`+(m.b?`<div class="gdates">生 ${m.b}${m.d?' 殁 '+m.d:''}</div>`:'')+(m.s?`<div class="gspouse">♥ ${m.s}</div>`:'')+(p?`<div class="gparent">↑ ${p.n}</div>`:'');gc.onclick=()=>openEdit(m.id);cards.appendChild(gc);});c.appendChild(sec);}}
+function openAdd(){EDIT=null;document.getElementById('mtitle').textContent='添加';['f-name','f-birth','f-death','f-spouse','f-spouseBirth','f-bio'].forEach(id=>document.getElementById(id).value='');document.getElementById('f-gender').value='男';document.getElementById('f-gen').value='5';popParent();document.getElementById('btn-del').style.display='none';document.getElementById('modal').classList.add('on');}
+function openEdit(id){EDIT=id;const m=M.find(x=>x.id===id);if(!EDIT)return;document.getElementById('mtitle').textContent='编辑';document.getElementById('f-name').value=m.n;document.getElementById('f-gender').value=m.g;document.getElementById('f-birth').value=m.b;document.getElementById('f-death').value=m.d;document.getElementById('f-spouse').value=m.s;document.getElementById('f-spouseBirth').value=m.sb;document.getElementById('f-gen').value=m.gen;document.getElementById('f-bio').value=m.bio||'';popParent(m.id,m.p);document.getElementById('btn-del').style.display='inline-block';document.getElementById('modal').classList.add('on');}
+function popParent(curId,curP){const s=document.getElementById('f-parent');s.innerHTML='<option value="">— 无 —</option>';M.filter(m=>m.id!==curId).forEach(m=>{const o=document.createElement('option');o.value=m.id;o.textContent=`${m.n}（第${m.gen}代）`;if(m.id===curP)o.selected=true;s.appendChild(o);});}
+function closeModal(){document.getElementById('modal').classList.remove('on');}
+function saveMember(){const n=document.getElementById('f-name').value.trim();if(!n){alert('姓名必填');return;}const d={n,gender:document.getElementById('f-gender').value,b:document.getElementById('f-birth').value.trim(),d:document.getElementById('f-death').value.trim(),s:document.getElementById('f-spouse').value.trim(),sb:document.getElementById('f-spouseBirth').value.trim(),gen:parseInt(document.getElementById('f-gen').value),p:document.getElementById('f-parent').value?parseInt(document.getElementById('f-parent').value):null,bio:document.getElementById('f-bio').value.trim()};if(EDIT){Object.assign(M.find(m=>m.id===EDIT),d);}else{M.push({id:NI++,...d});}save();closeModal();render();}
+function delMember(){if(!EDIT)return;const m=M.find(x=>x.id===EDIT);if(!confirm(`删除 ${m.n}？`))return;M.filter(c=>c.p===EDIT).forEach(c=>c.p=m.p);M=M.filter(x=>x.id!==EDIT);save();closeModal();render();}
+function exportCSV(){const BOM='\uFEFF';const hdr=['姓名','性别','出生','殁于','配偶','配偶出生','代数','父节点','生平'].join(',');const rows=M.map(m=>{const p=M.find(x=>x.id===m.p);return[m.n,m.g,m.b,m.d,m.s,m.sb,'第'+m.gen+'代',p?p.n:'',m.bio||''].map(v=>`"${(v||'').replace(/"/g,'""')}"`).join(',');});const csv=BOM+[hdr,...rows].join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='周氏家谱.csv';a.click();}
+// Zoom/Pan
+const tv=document.getElementById('tree-view');let panning=false,panStart={x:0,y:0};tv.onmousedown=e=>{if(e.target===tv||e.target.id==='tree-canvas'){panning=true;panStart={x:e.clientX-TRANSX,y:e.clientY-TRANSY};e.preventDefault();}};
+tv.onmousemove=e=>{if(panning){TRANSX=e.clientX-panStart.x;TRANSY=e.clientY-panStart.y;render();}};
+tv.onmouseup=()=>panning=false;
+tv.onwheel=e=>{if(e.ctrlKey){e.preventDefault();SCALE+=e.deltaY>0?-0.1:0.1;SCALE=Math.max(0.3,Math.min(2,SCALE));render();}};
+tv.ontouchstart=e=>{if(e.touches.length===2){tv.style.cursor='grabbing';}};
+tv.ontouchmove=e=>{if(e.touches.length===2){e.preventDefault();}};
+document.onkeydown=e=>{if(e.key==='Escape')closeModal();};
 </script>
 </body>
 </html>
