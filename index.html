@@ -276,9 +276,12 @@ async function loadFromGitHub() {
     const r = await fetch(WORKER_URL + '?t=' + Date.now());
     if (!r.ok) return false;
     const json = await r.json();
-    // Worker 返回的是 GitHub API 格式，需要解码
+    // Worker 返回 GitHub API 格式，需要解码 base64
     GH_SHA = json.sha;
-    const content = JSON.parse(atob(json.content.replace(/\n/g,'')));
+    const b64 = json.content.replace(/\n/g,'');
+    const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+    const text = new TextDecoder('utf-8').decode(bytes);
+    const content = JSON.parse(text);
     M = content.M; NI = content.NI || 79;
     DEF.forEach(d => { if (!M.find(x => x.id === d.id)) M.push(JSON.parse(JSON.stringify(d))); });
     return true;
