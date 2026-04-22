@@ -69,6 +69,12 @@ header{background:rgba(255,255,255,0.92);backdrop-filter:blur(20px);-webkit-back
 /* + 添加子节点按钮 */
 .add-child-btn{display:block;width:28px;height:28px;border-radius:50%;background:#0071e3;color:#fff;font-size:18px;line-height:26px;text-align:center;cursor:pointer;margin:6px auto 0;border:none;font-family:inherit;box-shadow:0 2px 8px rgba(0,113,227,0.3);transition:all .15s;opacity:0.85}
 .add-child-btn:hover{opacity:1;transform:scale(1.1)}
+/* 折叠/展开按钮 */
+.toggle-btn{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#f2f2f7;border:1.5px solid #d2d2d7;cursor:pointer;font-size:10px;color:#3c3c43;margin:4px auto 0;transition:all .2s;flex-shrink:0}
+.toggle-btn:hover{background:#e5e5ea;border-color:#aeaeb2}
+.toggle-btn.collapsed-state{background:#ff9500;border-color:#ff9500;color:#fff}
+/* 折叠时子区域隐藏 */
+.children-area.hidden{display:none!important}
 
 /* GEN VIEW */
 #gen-view{padding:16px;display:none;max-width:1000px;margin:0 auto}
@@ -146,6 +152,7 @@ header{background:rgba(255,255,255,0.92);backdrop-filter:blur(20px);-webkit-back
       <div class="hdr-title">🌳 周氏至德堂<span id="admin-badge" class="admin-badge" style="display:none">管理员</span></div>
       <div class="hdr-btns">
         <button class="btn btn-blue" onclick="saveData()">💾 保存</button>
+        <button class="btn btn-outline" id="btn-collapse-all" onclick="toggleAllCollapse()">全部折叠</button>
         <button class="btn btn-outline" onclick="exportCSV()">导出CSV</button>
         <button class="btn btn-outline" onclick="window.print()">打印</button>
         <button class="btn btn-gray" onclick="logout()">退出</button>
@@ -235,8 +242,9 @@ let M = [], NI = 75;
 let IS_ADMIN = false;
 let EDIT_ID = null;
 let FILTER = 'all';
-let ADD_PARENT_ID = null; // when clicking + button
+let ADD_PARENT_ID = null;
 let dragSrcId = null;
+let COLLAPSED = new Set(); // 存放已折叠节点的 id
 
 // ===== DEFAULT DATA =====
 const DEF = [
@@ -400,7 +408,6 @@ function renderTree() {
 
 function buildVertNode(m) {
   if (FILTER === 'zhou' && !m.n.includes('周')) {
-    // still render children
     const children = M.filter(c => c.p === m.id);
     if (!children.length) return null;
   }
@@ -412,27 +419,51 @@ function buildVertNode(m) {
   const card = makeCard(m);
   wrap.appendChild(card);
 
-  // + button (add child)
+  const children = M.filter(c => c.p === m.id);
+  const hasChildren = children.length > 0;
+  const isCollapsed = COLLAPSED.has(m.id);
+
+  // 按钮行：折叠按钮 + 添加子代按钮
+  const btnRow = document.createElement('div');
+  btnRow.style.cssText = 'display:flex;gap:4px;align-items:center;justify-content:center;margin-top:4px';
+
+  if (hasChildren) {
+    const toggleBtn = document.createElement('button');
+    toggleBtn.className = 'toggle-btn' + (isCollapsed ? ' collapsed-state' : '');
+    toggleBtn.title = isCollapsed ? '展开子代' : '折叠子代';
+    toggleBtn.textContent = isCollapsed ? '▶' : '▼';
+    toggleBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      if (COLLAPSED.has(m.id)) COLLAPSED.delete(m.id);
+      else COLLAPSED.add(m.id);
+      render();
+    });
+    btnRow.appendChild(toggleBtn);
+  }
+
   const addBtn = document.createElement('button');
   addBtn.className = 'add-child-btn';
+  addBtn.style.margin = '0';
   addBtn.title = '添加 ' + m.n + ' 的下一代';
   addBtn.textContent = '+';
   addBtn.addEventListener('click', e => { e.stopPropagation(); openAddChild(m.id); });
-  wrap.appendChild(addBtn);
+  btnRow.appendChild(addBtn);
 
-  // Children
-  const children = M.filter(c => c.p === m.id);
-  if (children.length > 0) {
-    // vline from + btn down
+  wrap.appendChild(btnRow);
+
+  // 子代区域
+  if (hasChildren && !isCollapsed) {
+    const childrenArea = document.createElement('div');
+    childrenArea.className = 'children-area';
+
+    // vline from btn row down
     const vline = document.createElement('div');
     vline.style.cssText = 'width:2px;height:14px;background:#d2d2d7;margin:0 auto';
-    wrap.appendChild(vline);
+    childrenArea.appendChild(vline);
 
-    // horizontal row with children
     const childRow = document.createElement('div');
     childRow.style.cssText = 'display:flex;flex-direction:row;align-items:flex-start;position:relative';
 
-    // horizontal connector line
     if (children.length > 1) {
       const hlineHolder = document.createElement('div');
       hlineHolder.style.cssText = 'position:absolute;top:20px;left:0;right:0;height:2px;background:#d2d2d7;pointer-events:none';
@@ -443,14 +474,23 @@ function buildVertNode(m) {
     children.forEach(ch => {
       const colWrap = document.createElement('div');
       colWrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;padding:0 4px';
-      // vline down from hline to child
       const cvline = document.createElement('div');
       cvline.style.cssText = 'width:2px;height:20px;background:#d2d2d7;margin:0 auto';
       colWrap.appendChild(cvline);
       const cn = buildVertNode(ch);
       if (cn) { colWrap.appendChild(cn); childRow.appendChild(colWrap); hasVisible = true; }
     });
-    if (hasVisible) wrap.appendChild(childRow);
+    if (hasVisible) {
+      childrenArea.appendChild(childRow);
+      wrap.appendChild(childrenArea);
+    }
+  } else if (hasChildren && isCollapsed) {
+    // 显示折叠提示
+    const hint = document.createElement('div');
+    hint.style.cssText = 'font-size:10px;color:#ff9500;margin-top:4px;text-align:center;cursor:pointer';
+    hint.textContent = '▶ ' + children.length + '人已折叠';
+    hint.addEventListener('click', e => { e.stopPropagation(); COLLAPSED.delete(m.id); render(); });
+    wrap.appendChild(hint);
   }
 
   return wrap;
@@ -675,6 +715,20 @@ function exportCSV() {
   a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
   a.download = '周氏家谱_' + new Date().toLocaleDateString('zh-CN').replace(/\//g,'-') + '.csv';
   a.click();
+}
+
+function toggleAllCollapse() {
+  const allParentIds = [...new Set(M.filter(m => m.p !== null).map(m => m.p))];
+  const btn = document.getElementById('btn-collapse-all');
+  if (COLLAPSED.size === 0) {
+    // 折叠所有有子节点的节点（保留第一代展开，从第二代开始折叠）
+    allParentIds.forEach(id => { const m = M.find(x => x.id === id); if (m && m.gen >= 2) COLLAPSED.add(id); });
+    btn.textContent = '全部展开';
+  } else {
+    COLLAPSED.clear();
+    btn.textContent = '全部折叠';
+  }
+  render();
 }
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
