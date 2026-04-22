@@ -186,11 +186,17 @@ header{background:rgba(255,255,255,0.92);backdrop-filter:blur(20px);-webkit-back
       </div>
       <div class="form-row">
         <div class="form-group"><label>配偶姓名</label><input id="f-spouse" placeholder="配偶姓名"></div>
-        <div class="form-group"><label>配偶出生</label><input id="f-spouseBirth" placeholder="配偶出生日期"></div>
+        <div class="form-group"><label>配偶性别</label>
+          <select id="f-spouseGender">
+            <option value="女">女</option>
+            <option value="男">男</option>
+            <option value="未知">未知</option>
+          </select>
+        </div>
       </div>
       <div class="form-row">
+        <div class="form-group"><label>配偶出生</label><input id="f-spouseBirth" placeholder="配偶出生日期"></div>
         <div class="form-group"><label>配偶殁于</label><input id="f-spouseDeath" placeholder="配偶去世日期"></div>
-        <div class="form-group"></div>
       </div>
       <div class="form-row">
         <div class="form-group"><label>代数</label>
@@ -454,8 +460,14 @@ function makeCard(m) {
   html += '<div class="cname"><span style="font-size:12px;margin-right:3px">' + genderIcon + '</span>' + m.n + '</div>';
   if (m.b || m.d) html += '<div class="cdates">' + (m.b||'') + (m.d ? ' 殁'+m.d : '') + '</div>';
   if (m.s) {
+    const sg = m.sg || (m.g === '男' ? '女' : '男'); // 配偶性别：默认与本人相反
+    const spIcon = sg === '男'
+      ? '<span style="color:#0071e3;font-size:13px;margin-right:2px">♂</span>'
+      : sg === '女'
+      ? '<span style="color:#e8405a;font-size:13px;margin-right:2px">♀</span>'
+      : '<span style="color:#86868b;font-size:11px;margin-right:2px">⚧</span>';
     html += '<div class="cspouse">';
-    html += '<span class="cspouse-heart">♥</span><span class="cspouse-name">' + m.s + '</span>';
+    html += '<span class="cspouse-heart">♥</span>' + spIcon + '<span class="cspouse-name">' + m.s + '</span>';
     let spDates = '';
     if (m.sb) spDates += '生 ' + m.sb;
     if (m.sd) spDates += (spDates ? '  殁 ' : '殁 ') + m.sd;
@@ -519,7 +531,7 @@ function renderGen() {
       const gi = m.g === '男' ? '👨' : m.g === '女' ? '👩' : '👤';
       gc.innerHTML = '<div class="gname"><span style="font-size:11px;margin-right:3px">' + gi + '</span>' + m.n + '</div>' +
         (m.b ? '<div class="gdates">生 ' + m.b + (m.d ? ' 殁 '+m.d : '') + '</div>' : '') +
-        (m.s ? '<div class="gspouse-name">♥ ' + m.s + '</div>' + ((m.sb||m.sd) ? '<div class="gspouse-dates">' + (m.sb?'生 '+m.sb:'') + (m.sd?' 殁 '+m.sd:'') + '</div>' : '') : '') +
+        (m.s ? (()=>{ const sg2=m.sg||(m.g==='男'?'女':'男'); const sic=sg2==='男'?'<span style="color:#0071e3">♂</span>':sg2==='女'?'<span style="color:#e8405a">♀</span>':''; return '<div class="gspouse-name">♥ '+sic+' '+m.s+'</div>'+((m.sb||m.sd)?'<div class="gspouse-dates">'+(m.sb?'生 '+m.sb:'')+(m.sd?' 殁 '+m.sd:'')+'</div>':''); })() : '') +
         (par ? '<div class="gparent">↑ ' + par.n + '</div>' : '');
       gc.addEventListener('click', () => openEdit(m.id));
       cards.appendChild(gc);
@@ -551,6 +563,7 @@ function openAddChild(parentId) {
   document.getElementById('mtitle').textContent = '添加 ' + (par ? par.n : '') + ' 的子代';
   ['f-name','f-birth','f-death','f-spouse','f-spouseBirth','f-spouseDeath','f-bio'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('f-gender').value = '男';
+  document.getElementById('f-spouseGender').value = '女';
   document.getElementById('f-gen').value = Math.min(7, (par ? par.gen + 1 : 2));
   popParent(null, parentId);
   document.getElementById('btn-del').style.display = 'none';
@@ -564,6 +577,7 @@ function openAdd() {
   document.getElementById('mtitle').textContent = '添加成员';
   ['f-name','f-birth','f-death','f-spouse','f-spouseBirth','f-spouseDeath','f-bio'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('f-gender').value = '男';
+  document.getElementById('f-spouseGender').value = '女';
   document.getElementById('f-gen').value = '5';
   popParent(null, null);
   document.getElementById('btn-del').style.display = 'none';
@@ -582,6 +596,7 @@ function openEdit(id) {
   document.getElementById('f-birth').value = m.b;
   document.getElementById('f-death').value = m.d;
   document.getElementById('f-spouse').value = m.s;
+  document.getElementById('f-spouseGender').value = m.sg || (m.g === '男' ? '女' : '男');
   document.getElementById('f-spouseBirth').value = m.sb;
   document.getElementById('f-spouseDeath').value = m.sd || '';
   document.getElementById('f-gen').value = m.gen;
@@ -607,6 +622,7 @@ function saveMember() {
     b: document.getElementById('f-birth').value.trim(),
     d: document.getElementById('f-death').value.trim(),
     s: document.getElementById('f-spouse').value.trim(),
+    sg: document.getElementById('f-spouseGender').value,
     sb: document.getElementById('f-spouseBirth').value.trim(),
     sd: document.getElementById('f-spouseDeath').value.trim(),
     gen: parseInt(document.getElementById('f-gen').value),
