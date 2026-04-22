@@ -393,17 +393,13 @@ function initApp() {
   const s = localStorage.getItem(STORAGE_KEY);
   if (s) {
     try {
-      const d = JSON.parse(s); M = d.M; NI = d.NI || 69;
-      // 强制同步 DEF 中的权威数据（防止旧 localStorage 覆盖正确数据）
-      const FORCE_IDS = [14,17,39,76,77,78];
-      FORCE_IDS.forEach(fid => {
-        const defItem = DEF.find(x => x.id === fid);
-        if (!defItem) return;
-        const idx = M.findIndex(x => x.id === fid);
-        if (idx >= 0) M[idx] = JSON.parse(JSON.stringify(defItem));
-        else M.push(JSON.parse(JSON.stringify(defItem)));
+      const d = JSON.parse(s); M = d.M; NI = d.NI || 79;
+      // 如果 localStorage 中缺少 DEF 新增的成员，补入（不覆盖已有）
+      DEF.forEach(defItem => {
+        if (!M.find(x => x.id === defItem.id)) {
+          M.push(JSON.parse(JSON.stringify(defItem)));
+        }
       });
-      if (NI < 79) NI = 79;
     } catch(e) { M = JSON.parse(JSON.stringify(DEF)); }
   }
   else { M = JSON.parse(JSON.stringify(DEF)); }
