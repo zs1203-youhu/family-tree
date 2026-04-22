@@ -40,7 +40,8 @@ header{background:rgba(255,255,255,0.92);backdrop-filter:blur(20px);-webkit-back
 .hint-bar{background:#fff8e1;border-bottom:1px solid #ffe082;padding:6px 16px;font-size:11px;color:#795548;text-align:center}
 
 /* TREE VIEW - 纵向布局 */
-#tree-view{overflow:auto;padding:0;min-height:60vh;-webkit-overflow-scrolling:touch;position:relative;cursor:default;user-select:none}
+#tree-view{overflow:hidden;padding:0;min-height:60vh;-webkit-overflow-scrolling:touch;position:relative;cursor:grab;user-select:none}
+#tree-view.panning{cursor:grabbing}
 #tree-canvas-outer{width:100%;height:100%;overflow:hidden;position:relative;min-height:60vh}
 .tree-wrap{display:inline-block;min-width:100%;padding:24px 16px 60px;transform-origin:top left;transition:transform .1s}
 /* 缩放控件 */
@@ -839,7 +840,25 @@ function zoomFit() {
 function initZoomPan() {
   const view = document.getElementById('tree-view');
   // 滑轮已禁用，改用角落按钮
-  // 鼠标平移和滚轮已禁用，仅保留按钮缩放
+  // 鼠标平移（保留）
+  view.addEventListener('mousedown', e => {
+    if (e.button !== 0 || e.target.closest('.card, .add-child-btn, .toggle-btn, .zoom-ctrl')) return;
+    isPanning = true;
+    panStartX = e.clientX; panStartY = e.clientY;
+    panStartPX = PAN_X; panStartPY = PAN_Y;
+    view.classList.add('panning');
+  });
+  window.addEventListener('mousemove', e => {
+    if (!isPanning) return;
+    PAN_X = panStartPX + (e.clientX - panStartX) / ZOOM;
+    PAN_Y = panStartPY + (e.clientY - panStartY) / ZOOM;
+    applyTransform();
+  });
+  window.addEventListener('mouseup', () => {
+    isPanning = false;
+    document.getElementById('tree-view').classList.remove('panning');
+  });
+  // 滚轮缩放已禁用，仅用按钮控制
 }
 
 // ===== 家谱下载（SVG 思维导图） =====
