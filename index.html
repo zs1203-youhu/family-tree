@@ -625,8 +625,8 @@ function makeCard(m) {
   card.innerHTML = html;
 
   // 点击卡片：管理员才能编辑
-  card.addEventListener('click', () => { if (IS_ADMIN) openEdit(m.id); });
-  card.style.cursor = IS_ADMIN ? 'pointer' : 'default';
+  card.addEventListener('click', () => openEdit(m.id));
+  card.style.cursor = 'pointer';
 
   // 拖拽：仅管理员
   card.draggable = IS_ADMIN;
@@ -685,8 +685,8 @@ function renderGen() {
         (m.b ? '<div class="gdates">生 ' + m.b + (m.d ? ' 殁 '+m.d : '') + '</div>' : '') +
         (m.s ? (()=>{ const sg2=m.sg||(m.g==='男'?'女':'男'); const sic=sg2==='男'?'<span style="color:#0071e3">♂</span>':sg2==='女'?'<span style="color:#e8405a">♀</span>':''; return '<div class="gspouse-name">♥ '+sic+' '+m.s+'</div>'+((m.sb||m.sd)?'<div class="gspouse-dates">'+(m.sb?'生 '+m.sb:'')+(m.sd?' 殁 '+m.sd:'')+'</div>':''); })() : '') +
         (par ? '<div class="gparent">↑ ' + par.n + '</div>' : '');
-      gc.addEventListener('click', () => { if (IS_ADMIN) openEdit(m.id); });
-      gc.style.cursor = IS_ADMIN ? 'pointer' : 'default';
+      gc.addEventListener('click', () => openEdit(m.id));
+      gc.style.cursor = 'pointer';
       cards.appendChild(gc);
     });
     sec.appendChild(cards);
@@ -739,7 +739,6 @@ function openAdd() {
 }
 
 function openEdit(id) {
-  if (!IS_ADMIN) return; // 仅管理员可编辑
   EDIT_ID = id;
   ADD_PARENT_ID = null;
   const m = M.find(x => x.id === id);
