@@ -62,7 +62,10 @@ header{background:rgba(255,255,255,0.92);backdrop-filter:blur(20px);-webkit-back
 .card .gen-badge{position:absolute;top:5px;right:6px;font-size:9px;color:#fff;background:#0071e3;border-radius:4px;padding:1px 4px;font-weight:700}
 .card .cname{font-size:13px;font-weight:700;color:#1d1d1f;padding-right:22px;line-height:1.3}
 .card .cdates{font-size:10px;color:#86868b;margin-top:2px;line-height:1.4}
-.card .cspouse{font-size:10px;color:#e8405a;margin-top:2px}
+.card .cspouse{margin-top:4px;padding-top:4px;border-top:1px solid #f2f2f7}
+.card .cspouse-name{font-size:11px;font-weight:600;color:#1d1d1f}
+.card .cspouse-heart{color:#e8405a;margin-right:3px}
+.card .cspouse-dates{font-size:10px;color:#86868b;margin-top:1px;line-height:1.4}
 /* + 添加子节点按钮 */
 .add-child-btn{display:block;width:28px;height:28px;border-radius:50%;background:#0071e3;color:#fff;font-size:18px;line-height:26px;text-align:center;cursor:pointer;margin:6px auto 0;border:none;font-family:inherit;box-shadow:0 2px 8px rgba(0,113,227,0.3);transition:all .15s;opacity:0.85}
 .add-child-btn:hover{opacity:1;transform:scale(1.1)}
@@ -78,7 +81,8 @@ header{background:rgba(255,255,255,0.92);backdrop-filter:blur(20px);-webkit-back
 .gcard:hover{box-shadow:0 4px 14px rgba(0,113,227,0.15)}
 .gcard .gname{font-size:13px;font-weight:700}
 .gcard .gdates{font-size:10px;color:#86868b;margin-top:2px}
-.gcard .gspouse{font-size:10px;color:#e8405a;margin-top:2px}
+.gcard .gspouse-name{font-size:11px;color:#1d1d1f;margin-top:3px}
+.gcard .gspouse-dates{font-size:10px;color:#86868b;margin-top:1px}
 .gcard .gparent{font-size:10px;color:#aeaeb2;margin-top:2px}
 
 /* MODAL */
@@ -185,6 +189,10 @@ header{background:rgba(255,255,255,0.92);backdrop-filter:blur(20px);-webkit-back
         <div class="form-group"><label>配偶出生</label><input id="f-spouseBirth" placeholder="配偶出生日期"></div>
       </div>
       <div class="form-row">
+        <div class="form-group"><label>配偶殁于</label><input id="f-spouseDeath" placeholder="配偶去世日期"></div>
+        <div class="form-group"></div>
+      </div>
+      <div class="form-row">
         <div class="form-group"><label>代数</label>
           <select id="f-gen">
             <option value="1">第一代</option><option value="2">第二代</option>
@@ -229,13 +237,13 @@ const DEF = [
   {id:1,n:"周筱圃",g:"男",b:"",d:"",s:"",sb:"",gen:1,p:null,bio:"家族始祖"},
   {id:2,n:"周保乾（靖明）",g:"男",b:"1895.1.7",d:"1967.10.31",s:"杨淑瑾",sb:"1895.6.20",gen:2,p:1,bio:"元配周氏高夫人（1895.3.3—1923.3.5），继室杨淑瑾（1895.6.20—1975.4.9）"},
   {id:3,n:"周保巽",g:"男",b:"",d:"1951.5",s:"阮德芝",sb:"",gen:2,p:1,bio:""},
-  {id:4,n:"周真伦",g:"男",b:"1915.10.28",d:"2007.7.28",s:"夏咏诗",sb:"1926.7.19",gen:3,p:2,bio:"夏咏诗殁于1999.9.26"},
-  {id:5,n:"周真铨",g:"男",b:"1918.7.5",d:"2005.1.2",s:"车相辅",sb:"1918.1.18",gen:3,p:2,bio:"车相辅殁于1988.2.1"},
-  {id:6,n:"周真纪",g:"男",b:"1924.4.3",d:"2012.11.20",s:"谢莲芳",sb:"1928.5.10",gen:3,p:2,bio:"谢莲芳殁于2012.12.2"},
+  {id:4,n:"周真伦",g:"男",b:"1915.10.28",d:"2007.7.28",s:"夏咏诗",sb:"1926.7.19",sd:"1999.9.26",gen:3,p:2,bio:""},
+  {id:5,n:"周真铨",g:"男",b:"1918.7.5",d:"2005.1.2",s:"车相辅",sb:"1918.1.18",sd:"1988.2.1",gen:3,p:2,bio:""},
+  {id:6,n:"周真纪",g:"男",b:"1924.4.3",d:"2012.11.20",s:"谢莲芳",sb:"1928.5.10",sd:"2012.12.2",gen:3,p:2,bio:""},
   {id:7,n:"周真仁",g:"男",b:"1927.5.12",d:"",s:"曹玉佩",sb:"1933.3.20",gen:3,p:2,bio:"本表以周真仁收集资料为主线整理"},
-  {id:8,n:"周稚容",g:"女",b:"1931.5.28",d:"",s:"姜清明",sb:"1931",gen:3,p:2,bio:"姜清明殁于2009.1.1"},
+  {id:8,n:"周稚容",g:"女",b:"1931.5.28",d:"",s:"姜清明",sb:"1931",sd:"2009.1.1",gen:3,p:2,bio:""},
   {id:9,n:"周真刚",g:"男",b:"",d:"",s:"",sb:"",gen:3,p:2,bio:""},
-  {id:10,n:"周真义",g:"男",b:"1934.5.11",d:"",s:"应根娣",sb:"1934.3.28",gen:3,p:2,bio:"应根娣殁于2001.7.1"},
+  {id:10,n:"周真义",g:"男",b:"1934.5.11",d:"",s:"应根娣",sb:"1934.3.28",sd:"2001.7.1",gen:3,p:2,bio:""},
   {id:11,n:"周真礼",g:"男",b:"1940.10.31",d:"2009.5.18",s:"丁梦瑚",sb:"1950.2.28",gen:3,p:2,bio:""},
   {id:12,n:"周绍容",g:"女",b:"",d:"",s:"冯国华",sb:"",gen:3,p:3,bio:""},
   {id:13,n:"周亚荣",g:"未知",b:"",d:"",s:"",sb:"",gen:3,p:3,bio:""},
@@ -444,7 +452,15 @@ function makeCard(m) {
   let html = '<span class="gen-badge">' + m.gen + '</span>';
   html += '<div class="cname">' + m.n + '</div>';
   if (m.b || m.d) html += '<div class="cdates">' + (m.b||'') + (m.d ? ' 殁'+m.d : '') + '</div>';
-  if (m.s) html += '<div class="cspouse">♥ ' + m.s + '</div>';
+  if (m.s) {
+    html += '<div class="cspouse">';
+    html += '<span class="cspouse-heart">♥</span><span class="cspouse-name">' + m.s + '</span>';
+    let spDates = '';
+    if (m.sb) spDates += '生 ' + m.sb;
+    if (m.sd) spDates += (spDates ? '  殁 ' : '殁 ') + m.sd;
+    if (spDates) html += '<div class="cspouse-dates">' + spDates + '</div>';
+    html += '</div>';
+  }
   card.innerHTML = html;
 
   card.addEventListener('click', () => openEdit(m.id));
@@ -501,7 +517,7 @@ function renderGen() {
       const par = M.find(x => x.id === m.p);
       gc.innerHTML = '<div class="gname">' + m.n + '</div>' +
         (m.b ? '<div class="gdates">生 ' + m.b + (m.d ? ' 殁 '+m.d : '') + '</div>' : '') +
-        (m.s ? '<div class="gspouse">♥ ' + m.s + '</div>' : '') +
+        (m.s ? '<div class="gspouse-name">♥ ' + m.s + '</div>' + ((m.sb||m.sd) ? '<div class="gspouse-dates">' + (m.sb?'生 '+m.sb:'') + (m.sd?' 殁 '+m.sd:'') + '</div>' : '') : '') +
         (par ? '<div class="gparent">↑ ' + par.n + '</div>' : '');
       gc.addEventListener('click', () => openEdit(m.id));
       cards.appendChild(gc);
@@ -531,7 +547,7 @@ function openAddChild(parentId) {
   EDIT_ID = null;
   const par = M.find(x => x.id === parentId);
   document.getElementById('mtitle').textContent = '添加 ' + (par ? par.n : '') + ' 的子代';
-  ['f-name','f-birth','f-death','f-spouse','f-spouseBirth','f-bio'].forEach(id => document.getElementById(id).value = '');
+  ['f-name','f-birth','f-death','f-spouse','f-spouseBirth','f-spouseDeath','f-bio'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('f-gender').value = '男';
   document.getElementById('f-gen').value = Math.min(7, (par ? par.gen + 1 : 2));
   popParent(null, parentId);
@@ -544,7 +560,7 @@ function openAdd() {
   ADD_PARENT_ID = null;
   EDIT_ID = null;
   document.getElementById('mtitle').textContent = '添加成员';
-  ['f-name','f-birth','f-death','f-spouse','f-spouseBirth','f-bio'].forEach(id => document.getElementById(id).value = '');
+  ['f-name','f-birth','f-death','f-spouse','f-spouseBirth','f-spouseDeath','f-bio'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('f-gender').value = '男';
   document.getElementById('f-gen').value = '5';
   popParent(null, null);
@@ -565,6 +581,7 @@ function openEdit(id) {
   document.getElementById('f-death').value = m.d;
   document.getElementById('f-spouse').value = m.s;
   document.getElementById('f-spouseBirth').value = m.sb;
+  document.getElementById('f-spouseDeath').value = m.sd || '';
   document.getElementById('f-gen').value = m.gen;
   document.getElementById('f-bio').value = m.bio || '';
   popParent(m.id, m.p);
@@ -589,6 +606,7 @@ function saveMember() {
     d: document.getElementById('f-death').value.trim(),
     s: document.getElementById('f-spouse').value.trim(),
     sb: document.getElementById('f-spouseBirth').value.trim(),
+    sd: document.getElementById('f-spouseDeath').value.trim(),
     gen: parseInt(document.getElementById('f-gen').value),
     p: document.getElementById('f-parent').value ? parseInt(document.getElementById('f-parent').value) : null,
     bio: document.getElementById('f-bio').value.trim()
@@ -621,10 +639,10 @@ function delMember() {
 // ===== EXPORT =====
 function exportCSV() {
   const BOM = '\uFEFF';
-  const hdr = ['姓名','性别','出生','殁于','配偶','配偶出生','代数','父节点','生平'].join(',');
+  const hdr = ['姓名','性别','出生','殁于','配偶','配偶出生','配偶殁于','代数','父节点','生平'].join(',');
   const rows = M.map(m => {
     const par = M.find(x => x.id === m.p);
-    return [m.n,m.g,m.b,m.d,m.s,m.sb,'第'+m.gen+'代',par?par.n:'',m.bio||'']
+    return [m.n,m.g,m.b,m.d,m.s,m.sb,m.sd||'','第'+m.gen+'代',par?par.n:'',m.bio||'']
       .map(v => '"' + (v||'').replace(/"/g,'""') + '"').join(',');
   });
   const csv = BOM + [hdr, ...rows].join('\n');
