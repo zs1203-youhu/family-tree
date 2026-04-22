@@ -839,16 +839,7 @@ function zoomFit() {
 // 滚轮缩放
 function initZoomPan() {
   const view = document.getElementById('tree-view');
-  let wheelTimer = null;
-  view.addEventListener('wheel', e => {
-    e.preventDefault();
-    clearTimeout(wheelTimer);
-    wheelTimer = setTimeout(() => {
-      const delta = e.deltaY > 0 ? -0.05 : 0.05;
-      ZOOM = Math.min(3, Math.max(0.2, ZOOM + delta));
-      applyTransform();
-    }, 16);
-  }, { passive: false });
+  // 滑轮已禁用，改用角落按钮
   // 鼠标平移
   view.addEventListener('mousedown', e => {
     if (e.button !== 0 || e.target.closest('.card, .add-child-btn, .toggle-btn, .zoom-ctrl')) return;
@@ -879,62 +870,99 @@ function initZoomPan() {
   }, { passive: true });
 }
 
-// ===== 家谱下载（生成竺立手机可阅读 HTML） =====
+// ===== 家谱下载（重新设计：卡片式分支树） =====
 function downloadGenealogyHTML() {
   const data = M;
   const now = new Date().toLocaleDateString('zh-CN');
+  const GC = ['#8b4513','#4a7c59','#7b68b5','#c9a84c','#4a90d9','#95a5a6','#e8405a'];
+  const GB = ['#fdf6f0','#f0f7f3','#f4f2fb','#fdf9ec','#f0f5fd','#f8f8f8','#fef0f2'];
+  const GN = ['第一代','第二代','第三代','第四代','第五代','第六代','第七代'];
 
-  // 递归生成竺向章节树 HTML
-  function buildSection(parentId, depth) {
-    const children = data.filter(m => m.p === parentId);
-    if (!children.length) return '';
-    let html = '<ul style="list-style:none;padding-left:' + (depth > 0 ? '18px' : '0') + ';margin:0">';
-    children.forEach(m => {
-      const gi = m.g === '男' ? '👨' : m.g === '女' ? '👩' : '👤';
-      const dates = (m.b || m.d) ? '<span style="color:#86868b;font-size:11px;margin-left:4px">' + (m.b||'') + (m.d?' 沃'+m.d:'') + '</span>' : '';
-      const sg = m.sg || (m.g==='男'?'女':'男');
-      const sic = m.s ? '<span style="font-size:10px;color:' + (sg==='男'?'#0071e3':'#e8405a') + '">' + (sg==='男'?'♂':'♀') + '</span> ' : '';
-      const spouse = m.s ? '<div style="font-size:11px;color:#555;margin-top:2px;padding-left:4px">♥ ' + sic + m.s + (m.sb?' 生'+m.sb:'') + (m.sd?' 沃'+m.sd:'') + '</div>' : '';
-      const bio = m.bio ? '<div style="font-size:10px;color:#aaa;margin-top:2px;padding-left:4px">' + m.bio + '</div>' : '';
-      const hasKids = data.some(c => c.p === m.id);
-      const borderColor = ['#8b4513','#4a7c59','#7b68b5','#c9a84c','#4a90d9','#95a5a6','#e8405a'][m.gen-1] || '#ccc';
-      html += '<li style="margin:6px 0">';
-      html += '<div style="background:#fff;border-radius:10px;padding:8px 10px;border-left:3px solid ' + borderColor + ';box-shadow:0 1px 4px rgba(0,0,0,0.08)">';
-      html += '<div style="font-size:13px;font-weight:700">' + gi + ' ' + m.n + dates + '</div>';
-      html += spouse + bio;
-      html += '</div>';
-      if (hasKids) html += buildSection(m.id, depth + 1);
-      html += '</li>';
-    });
-    html += '</ul>';
-    return html;
+  function card(m) {
+    const gi = m.g==='男'?'👨':m.g==='女'?'👩':'👤';
+    const col = GC[m.gen-1]||'#ccc';
+    const bg = GB[m.gen-1]||'#f8f8f8';
+    const dates = (m.b||m.d)?'<div style="font-size:10px;color:#888;margin-top:1px">'+(m.b||'')+(m.d?' 沃'+m.d:'')+'</div>':'';
+    const sg = m.sg||(m.g==='男'?'女':'男');
+    const sic = '<span style="color:'+(sg==='男'?'#0071e3':'#e8405a')+';font-size:11px">'+(sg==='男'?'♂':'♀')+'</span>';
+    const sp = m.s?'<div style="font-size:10px;color:#666;margin-top:3px;padding-top:3px;border-top:1px solid rgba(0,0,0,0.06)">♥ '+sic+' <b>'+m.s+'</b>'+(m.sb?' 生'+m.sb:'')+(m.sd?' 沃'+m.sd:'')+'</div>':'';
+    return '<div style="background:'+bg+';border:1.5px solid '+col+';border-radius:10px;padding:8px 10px;min-width:120px;max-width:160px;display:inline-block;vertical-align:top;box-shadow:0 2px 8px rgba(0,0,0,0.07);">'+
+      '<div style="font-size:13px;font-weight:700;color:#1d1d1f">'+gi+' '+m.n+'</div>'+dates+sp+'</div>';
   }
 
-  const body = buildSection(null, 0);
+  function buildBranch(parentId, depth) {
+    const children = data.filter(m => m.p === parentId);
+    if (!children.length) return '';
+    let s = '<div style="display:flex;flex-direction:column;align-items:flex-start;padding-left:'+(depth?'20px':'0')+'">';
+    children.forEach((m,i) => {
+      const hasKids = data.some(c => c.p === m.id);
+      const col = GC[m.gen-1]||'#ccc';
+      s += '<div style="position:relative;margin:6px 0">';
+      // 垂直连线
+      if(depth>0) s += '<div style="position:absolute;left:-14px;top:20px;width:14px;height:1.5px;background:'+col+'"></div>';
+      s += '<div style="display:flex;flex-direction:column;align-items:flex-start">';
+      s += card(m);
+      if (hasKids) s += buildBranch(m.id, depth + 1);
+      s += '</div></div>';
+    });
+    s += '</div>';
+    return s;
+  }
+
+  // 按代数分节将每个第二代分支独立成块
+  const roots = data.filter(m => m.p === null);
+  let sections = '';
+  function buildRootSection(m) {
+    const col = GC[m.gen-1]||'#8b4513';
+    const bg = GB[m.gen-1]||'#fdf6f0';
+    const gen2 = data.filter(c => c.p === m.id);
+    let inner = '';
+    if (gen2.length) {
+      gen2.forEach(c2 => {
+        const c2col = GC[c2.gen-1]||'#4a7c59';
+        const c2bg = GB[c2.gen-1]||'#f0f7f3';
+        const sub = buildBranch(c2.id, 1);
+        inner += '<div style="margin:10px 0;background:'+c2bg+';border-radius:12px;padding:10px;border-left:4px solid '+c2col+'">';
+        inner += '<div style="margin-bottom:8px">'+card(c2)+'</div>';
+        if (sub) inner += sub;
+        inner += '</div>';
+      });
+    }
+    return '<section style="margin-bottom:24px;background:'+bg+';border-radius:16px;padding:14px;border:2px solid '+col+'">'+'<div style="margin-bottom:10px">'+card(m)+'</div>'+inner+'</section>';
+  }
+  roots.forEach(r => { sections += buildRootSection(r); });
+
   const html = `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>周氏至德堂家谱 ${now}</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=3">
+<title>周氏至德堂家谱</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,'Microsoft YaHei',sans-serif;background:#f5f5f7;padding:16px;max-width:520px;margin:0 auto}
-.cover{text-align:center;padding:28px 0 20px;margin-bottom:16px}
-.cover h1{font-size:22px;font-weight:800;letter-spacing:2px}
-.cover p{font-size:12px;color:#86868b;margin-top:6px}
-.zibi{background:#1d1d1f;color:#f5c842;border-radius:10px;padding:10px 14px;font-size:11px;line-height:1.9;margin-bottom:16px;letter-spacing:0.5px}
+body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f0f0f5;padding:0 0 40px}
+.header{background:linear-gradient(160deg,#1a1a2e,#2d5a3d);color:#fff;text-align:center;padding:32px 16px 24px}
+.header h1{font-size:22px;font-weight:800;letter-spacing:3px}
+.header p{font-size:12px;opacity:.7;margin-top:6px}
+.zibi{background:rgba(255,255,255,0.12);border-radius:10px;padding:10px 14px;font-size:11px;line-height:2;margin:12px 0 0;color:#f5c842;letter-spacing:.5px}
+.legend{display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px;background:#fff;border-bottom:1px solid #eee}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:#555}
+.dot{width:10px;height:10px;border-radius:50%}
+.content{padding:14px}
 </style>
 </head>
 <body>
-<div class="cover">
-  <div style="font-size:36px">🌳</div>
+<div class="header">
+  <div style="font-size:40px;margin-bottom:8px">🌳</div>
   <h1>周氏至德堂家谱</h1>
-  <p>导出时间：${now} · 共 ${data.length} 人</p>
+  <p>导出时间：${now} &nbsp;·&nbsp; 共 ${data.length} 人</p>
+  <div class="zibi">字辈：朋昌魁林伍 · 廷玉乩保真 · 诗书延世泽 · 礼乐振家声<br>忠孝承先业 · 贤良裕后昆 · 祖宗传至德 · 丕焉我人文</div>
 </div>
-<div class="zibi">字辈：朋昌魁林伍 · 廷玉乩保真 · 诗书延世泽 · 礼乐振家声 · 忠孝承先业 · 贤良裕后昆 · 祖宗传至德 · 丕焉我人文</div>
-${body}
-<p style="text-align:center;color:#aeaeb2;font-size:11px;margin-top:24px;padding-bottom:20px">周氏至德堂家谱 · ${now}</p>
+<div class="legend">
+  ${GN.map((n,i)=>'<div class="legend-item"><div class="dot" style="background:'+GC[i]+'"></div>'+n+'</div>').join('')}
+</div>
+<div class="content">${sections}</div>
+<p style="text-align:center;color:#aaa;font-size:11px;padding-top:16px">周氏至德堂家谱 &nbsp;·&nbsp; ${now}</p>
 </body></html>`;
 
   const blob = new Blob([html], {type:'text/html;charset=utf-8'});
