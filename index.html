@@ -871,139 +871,126 @@ function initZoomPan() {
 function downloadGenealogyHTML() {
   const data = M;
   const now = new Date().toLocaleDateString('zh-CN');
-  const GC = ['#7c4a1e','#2d7a4f','#6a5acd','#b8860b','#1a6eb5','#777','#c0392b'];
-  const NW = 160, NH = 64, HGAP = 56, VGAP = 18;
-  const PAD = 30, HDR = 110; // 顶部标题区高度
+  const GC = ['#7c4a1e','#2d7a4f','#6a5acd','#b8860b','#1a6eb5','#555','#c0392b'];
+  const NW = 170, NH = 66, HGAP = 60, VGAP = 20;
+  const PAD = 40, HDR = 120;
+  const FONT = "'PingFang SC','Microsoft YaHei','SimHei',sans-serif";
 
-  // 子树行数
   function rows(id) {
     const kids = data.filter(m => m.p === id);
     return kids.length ? kids.reduce((s,k)=>s+rows(k.id),0) : 1;
   }
 
-  // 布局
   const LO = {};
   function place(id, col, rowStart) {
     const kids = data.filter(k => k.p === id);
     const r = rows(id);
-    const cx = PAD + col*(NW+HGAP) + NW/2;
+    const x = PAD + col*(NW+HGAP);
     const cy = HDR + PAD + (rowStart + r/2)*(NH+VGAP);
-    LO[id] = {cx, cy, x:cx-NW/2, y:cy-NH/2};
+    LO[id] = {x, y:cy-NH/2, cx:x+NW/2, cy, rx:x+NW};
     let rs = rowStart;
     kids.forEach(k=>{ place(k.id, col+1, rs); rs+=rows(k.id); });
   }
+
   const roots = data.filter(m=>!m.p);
   let globalRow = 0;
   roots.forEach(r=>{ place(r.id,0,globalRow); globalRow+=rows(r.id); });
 
-  const maxGen = Math.max(...data.map(m=>m.gen));
-  const cW = PAD*2 + maxGen*(NW+HGAP);
-  const cH = HDR + PAD*2 + globalRow*(NH+VGAP) + 60;
+  // 根据实际布局计算画布大小（而不是用 maxGen）
+  const allX = Object.values(LO).map(p=>p.rx);
+  const allY = Object.values(LO).map(p=>p.y+NH);
+  const cW = Math.max(...allX) + PAD;
+  const cH = Math.max(...allY) + PAD + 40;
 
-  const canvas = document.createElement('canvas');
-  const DPR = 2; // 高清
-  canvas.width = cW*DPR; canvas.height = cH*DPR;
-  const ctx = canvas.getContext('2d');
+  const DPR = 2;
+  const cv = document.createElement('canvas');
+  cv.width = cW*DPR; cv.height = cH*DPR;
+  const ctx = cv.getContext('2d');
   ctx.scale(DPR,DPR);
 
   // 背景
-  const bg = ctx.createLinearGradient(0,0,0,cH);
-  bg.addColorStop(0,'#1a2e1a'); bg.addColorStop(0.12,'#2d5a3d'); bg.addColorStop(0.12,'#f4f4f8'); bg.addColorStop(1,'#f4f4f8');
-  ctx.fillStyle = bg; ctx.fillRect(0,0,cW,cH);
+  ctx.fillStyle='#f0f0f5'; ctx.fillRect(0,0,cW,cH);
+  // 顶部深色头
+  ctx.fillStyle='#1c3a24'; ctx.fillRect(0,0,cW,HDR);
 
-  // 标题区
-  ctx.fillStyle='#fff';
-  ctx.font='bold 22px \'PingFang SC\',\'Microsoft YaHei\',sans-serif';
+  // 标题
   ctx.textAlign='center';
-  ctx.fillText('🌳 周氏至德堂家谱', cW/2, 36);
-  ctx.font='12px \'PingFang SC\',\'Microsoft YaHei\',sans-serif';
-  ctx.fillStyle='rgba(255,255,255,0.75)';
-  ctx.fillText('导出时间：'+now+'   共 '+data.length+' 人', cW/2, 58);
-
-  // 字辈诗句（金色）
-  ctx.fillStyle='#f5c842';
-  ctx.font='11px \'PingFang SC\',\'Microsoft YaHei\',sans-serif';
-  const zibi = '字辈：朋昌魁林伍 · 廷玉佩保真 · 诗书延世泽 · 礼乐振家声 · 忠孝承先业 · 贤良裕后昆 · 祖宗传至德 · 丕焕我人文';
-  ctx.fillText(zibi, cW/2, 80);
-
+  ctx.fillStyle='#fff'; ctx.font='bold 24px '+FONT;
+  ctx.fillText('周氏至德堂家谱', cW/2, 40);
+  ctx.fillStyle='rgba(255,255,255,0.65)'; ctx.font='13px '+FONT;
+  ctx.fillText('导出时间：'+now+'    共 '+data.length+' 人', cW/2, 62);
+  // 字辈（金色）
+  ctx.fillStyle='#f5c842'; ctx.font='12px '+FONT;
+  const z1='字辈：朋昌魁林伍  廷玉佩保真  诗书延世泽  礼乐振家声';
+  const z2='忠孝承先业  贤良裕后昆  祖宗传至德  丕焕我人文';
+  ctx.fillText(z1, cW/2, 84);
+  ctx.fillText(z2, cW/2, 102);
   // 分隔线
-  ctx.strokeStyle='rgba(255,255,255,0.2)'; ctx.lineWidth=1;
-  ctx.beginPath(); ctx.moveTo(PAD, HDR-10); ctx.lineTo(cW-PAD, HDR-10); ctx.stroke();
+  ctx.strokeStyle='rgba(255,255,255,0.25)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(PAD,HDR-6); ctx.lineTo(cW-PAD,HDR-6); ctx.stroke();
 
   // 连线
   data.forEach(m=>{
-    if (!m.p || !LO[m.p] || !LO[m.id]) return;
+    if(!m.p||!LO[m.p]||!LO[m.id]) return;
     const pp=LO[m.p], cp=LO[m.id];
-    const col = GC[m.gen-1]||'#888';
-    ctx.strokeStyle=col+'99'; ctx.lineWidth=1.5;
-    ctx.beginPath();
-    const x1=pp.x+NW, y1=pp.cy, x2=cp.x, y2=cp.cy, mx=(x1+x2)/2;
-    ctx.moveTo(x1,y1);
-    ctx.bezierCurveTo(mx,y1,mx,y2,x2,y2);
+    ctx.strokeStyle=(GC[m.gen-1]||'#888')+'aa';
+    ctx.lineWidth=1.5; ctx.beginPath();
+    const x1=pp.rx,y1=pp.cy,x2=cp.x,y2=cp.cy,mx=(x1+x2)/2;
+    ctx.moveTo(x1,y1); ctx.bezierCurveTo(mx,y1,mx,y2,x2,y2);
     ctx.stroke();
   });
 
   // 节点
   data.forEach(m=>{
-    const pos=LO[m.id]; if(!pos) return;
+    const p=LO[m.id]; if(!p) return;
     const col=GC[m.gen-1]||'#888';
-    const {x,y}=pos;
+    const {x,y}=p;
 
-    // 阴影
-    ctx.shadowColor='rgba(0,0,0,0.12)'; ctx.shadowBlur=8; ctx.shadowOffsetY=3;
-
-    // 卡片
-    ctx.fillStyle='#fff';
-    roundRect(ctx,x,y,NW,NH,8); ctx.fill();
+    ctx.shadowColor='rgba(0,0,0,0.13)'; ctx.shadowBlur=7; ctx.shadowOffsetY=3;
+    ctx.fillStyle='#fff'; rr(ctx,x,y,NW,NH,8); ctx.fill();
     ctx.shadowColor='transparent';
 
-    // 左色条
-    ctx.fillStyle=col;
-    roundRect(ctx,x,y,5,NH,4); ctx.fill();
+    ctx.fillStyle=col; rr(ctx,x,y,5,NH,3); ctx.fill();
 
-    // 代数角标
-    ctx.fillStyle=col;
-    roundRect(ctx,x+NW-26,y+3,24,14,4); ctx.fill();
-    ctx.fillStyle='#fff'; ctx.font='bold 9px sans-serif'; ctx.textAlign='center';
-    ctx.fillText('第'+m.gen+'代', x+NW-14, y+13);
+    // 代数标签
+    ctx.fillStyle=col; rr(ctx,x+NW-28,y+4,26,14,4); ctx.fill();
+    ctx.fillStyle='#fff'; ctx.font='bold 9px '+FONT; ctx.textAlign='center';
+    ctx.fillText('第'+m.gen+'代', x+NW-15, y+14);
 
-    // 姓名
-    ctx.fillStyle='#1d1d1f'; ctx.font='bold 13px \'PingFang SC\',\'Microsoft YaHei\',sans-serif'; ctx.textAlign='left';
-    const gi=m.g==='男'?'♂':m.g==='女'?'♀':'?';
-    ctx.fillText(gi+' '+m.n, x+10, y+22);
+    ctx.textAlign='left';
+    // 性别文字（不用emoji）
+    const gTxt = m.g==='男'?'[男]':m.g==='女'?'[女]':'[未]';
+    ctx.fillStyle='#1d1d1f'; ctx.font='bold 13px '+FONT;
+    ctx.fillText(gTxt+' '+m.n, x+10, y+21);
 
-    // 生卒
     if(m.b||m.d){
-      ctx.fillStyle='#888'; ctx.font='9px sans-serif';
-      ctx.fillText((m.b||'')+(m.d?' 殁'+m.d:''), x+10, y+36);
+      ctx.fillStyle='#777'; ctx.font='10px '+FONT;
+      ctx.fillText((m.b?'生'+m.b:'')+(m.d?' 殁'+m.d:''), x+10, y+36);
     }
-    // 配偶
     if(m.s){
       const sg=m.sg||(m.g==='男'?'女':'男');
-      ctx.fillStyle=sg==='男'?'#0071e3':'#e8405a'; ctx.font='9px sans-serif';
-      ctx.fillText('♥ '+(sg==='男'?'♂':'♀')+' '+m.s, x+10, y+50);
+      const sTxt=sg==='男'?'[婿]':'内'; // [婿]表示关系
+      ctx.fillStyle=sg==='男'?'#1a6eb5':'#c0392b'; ctx.font='10px '+FONT;
+      ctx.fillText('配'+sTxt+'：'+m.s+(m.sb?' 生'+m.sb:'')+(m.sd?' 殁'+m.sd:''), x+10, y+52);
     }
   });
 
   // 底部署名
-  ctx.fillStyle='#aaa'; ctx.font='10px sans-serif'; ctx.textAlign='center';
-  ctx.fillText('周氏至德堂家谱 · '+now, cW/2, cH-16);
+  ctx.fillStyle='#aaa'; ctx.font='11px '+FONT; ctx.textAlign='center';
+  ctx.fillText('周氏至德堂家谱  '+now, cW/2, cH-14);
 
-  // 导出 PNG
-  canvas.toBlob(blob=>{
+  cv.toBlob(blob=>{
     const a=document.createElement('a');
     a.href=URL.createObjectURL(blob);
     a.download='周氏家谱_'+now.replace(/\//g,'-')+'.png';
-    a.click();
-    URL.revokeObjectURL(a.href);
+    a.click(); URL.revokeObjectURL(a.href);
     showToast('✅ 家谱PNG已下载');
   },'image/png');
 }
 
-function roundRect(ctx,x,y,w,h,r){
+function rr(ctx,x,y,w,h,r){
   ctx.beginPath();
-  ctx.moveTo(x+r,y);
-  ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
   ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
   ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r);
   ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y);
