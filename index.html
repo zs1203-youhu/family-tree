@@ -153,7 +153,7 @@ header{background:rgba(255,255,255,0.92);backdrop-filter:blur(20px);-webkit-back
       <div class="hdr-btns">
         <button class="btn btn-blue" onclick="saveData()">💾 保存</button>
         <button class="btn btn-outline" id="btn-collapse-all" onclick="toggleAllCollapse()">全部折叠</button>
-        <button class="btn btn-outline" onclick="showBackups()">📦 备份</button>
+        <button class="btn btn-outline" id="btn-backup" onclick="showBackups()" style="display:none">📦 备份</button>
         <button class="btn btn-outline" onclick="exportCSV()">导出CSV</button>
         <button class="btn btn-outline" onclick="window.print()">打印</button>
         <button class="btn btn-gray" onclick="logout()">退出</button>
@@ -170,7 +170,7 @@ header{background:rgba(255,255,255,0.92);backdrop-filter:blur(20px);-webkit-back
     <button class="filter-btn on" id="btn-all" onclick="setFilter('all')">全部成员</button>
     <button class="filter-btn" id="btn-zhou" onclick="setFilter('zhou')">仅周姓</button>
   </div>
-  <div class="hint-bar">💡 点击成员卡片编辑 · 点击 <b>＋</b> 快速添加下一代 · 拖拽卡片可调整父子关系（PC端）</div>
+  <div class="hint-bar" id="hint-bar">💡 点击 <b>＋</b> 快速添加下一代 · 管理员登录可编辑删除成员</div>
   <div id="tree-view"><div id="tree-canvas" class="tree-wrap"></div></div>
   <div id="gen-view"></div>
 </div>
@@ -366,6 +366,12 @@ function initApp() {
   document.getElementById('login-page').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   document.getElementById('admin-badge').style.display = IS_ADMIN ? 'inline' : 'none';
+  // 备份按钮：仅管理员可见
+  document.getElementById('btn-backup').style.display = IS_ADMIN ? 'inline-block' : 'none';
+  // 提示栏
+  document.getElementById('hint-bar').textContent = IS_ADMIN
+    ? '💡 管理员：点击卡片可编辑/删除 · 点击『＋』添加下一代 · 拖拽可调整父子关系'
+    : '💡 点击『＋』添加下一代成员 · 保存后生效（查看可联系管理员编辑）';
   // Load data
   const s = localStorage.getItem(STORAGE_KEY);
   if (s) { try { const d = JSON.parse(s); M = d.M; NI = d.NI || 69; } catch(e) { M = JSON.parse(JSON.stringify(DEF)); } }
@@ -400,6 +406,7 @@ function saveData() {
 }
 
 function showBackups() {
+  if (!IS_ADMIN) { alert('仅管理员可查看备份'); return; }
   const backups = JSON.parse(localStorage.getItem(BACKUP_KEY) || '[]');
   const el = document.getElementById('backup-list');
   if (!backups.length) {
@@ -585,10 +592,14 @@ function makeCard(m) {
   }
   card.innerHTML = html;
 
-  card.addEventListener('click', () => openEdit(m.id));
+  // 点击卡片：管理员才能编辑
+  card.addEventListener('click', () => { if (IS_ADMIN) openEdit(m.id); });
+  card.style.cursor = IS_ADMIN ? 'pointer' : 'default';
 
-  // PC drag-and-drop
+  // 拖拽：仅管理员
+  card.draggable = IS_ADMIN;
   card.addEventListener('dragstart', e => {
+    if (!IS_ADMIN) { e.preventDefault(); return; }
     dragSrcId = m.id; card.classList.add('dragging');
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', m.id);
@@ -695,6 +706,7 @@ function openAdd() {
 }
 
 function openEdit(id) {
+  if (!IS_ADMIN) return; // 仅管理员可编辑
   EDIT_ID = id;
   ADD_PARENT_ID = null;
   const m = M.find(x => x.id === id);
