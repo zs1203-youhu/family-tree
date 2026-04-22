@@ -40,7 +40,7 @@ header{background:rgba(255,255,255,0.96);backdrop-filter:blur(20px);-webkit-back
 .hint-bar{background:#fff8e1;border-bottom:1px solid #ffe082;padding:5px 12px;font-size:10px;color:#795548;text-align:center;line-height:1.5}
 
 /* TREE VIEW - 纵向布局 */
-#tree-view{overflow:auto;-webkit-overflow-scrolling:touch;padding:0;min-height:60vh;position:relative;cursor:grab;user-select:none;touch-action:pan-x pan-y}
+#tree-view{overflow:auto;-webkit-overflow-scrolling:touch;padding:0;height:calc(100vh - 160px);min-height:300px;position:relative;cursor:grab;user-select:none;touch-action:pan-x pan-y}
 #tree-view.panning{cursor:grabbing}
 .tree-wrap{display:inline-block;min-width:100%;padding:24px 16px 100px;transform-origin:top left;transition:transform .08s}
 /* 缩放控件 */
@@ -867,148 +867,147 @@ function initZoomPan() {
   view.addEventListener('wheel', e => e.preventDefault(), { passive: false });
 }
 
-// ===== 家谱下载（SVG 思维导图） =====
+// ===== 家谱下载（Canvas → PNG） =====
 function downloadGenealogyHTML() {
   const data = M;
   const now = new Date().toLocaleDateString('zh-CN');
-  const GC = ['#7c4a1e','#2d7a4f','#6a5acd','#b8860b','#1a6eb5','#888','#c0392b'];
+  const GC = ['#7c4a1e','#2d7a4f','#6a5acd','#b8860b','#1a6eb5','#777','#c0392b'];
+  const NW = 160, NH = 64, HGAP = 56, VGAP = 18;
+  const PAD = 30, HDR = 110; // 顶部标题区高度
 
-  // 节点尺寸
-  const NW = 150, NH = 56, HGAP = 60, VGAP = 16;
-
-  // 计算每个节点的子树高度（展开行数）
-  function subtreeRows(id) {
+  // 子树行数
+  function rows(id) {
     const kids = data.filter(m => m.p === id);
-    if (!kids.length) return 1;
-    return kids.reduce((s, k) => s + subtreeRows(k.id), 0);
+    return kids.length ? kids.reduce((s,k)=>s+rows(k.id),0) : 1;
   }
 
-  // 布局：给每个节点分配 (x, y)
-  const layout = {};
+  // 布局
+  const LO = {};
   function place(id, col, rowStart) {
-    const m = data.find(x => x.id === id);
-    if (!m) return;
     const kids = data.filter(k => k.p === id);
-    const rows = subtreeRows(id);
-    const cx = col * (NW + HGAP) + NW / 2;
-    const cy = (rowStart + rows / 2) * (NH + VGAP);
-    layout[id] = { x: cx - NW/2, y: cy - NH/2, cx, cy };
-    let r = rowStart;
-    kids.forEach(k => {
-      place(k.id, col + 1, r);
-      r += subtreeRows(k.id);
-    });
+    const r = rows(id);
+    const cx = PAD + col*(NW+HGAP) + NW/2;
+    const cy = HDR + PAD + (rowStart + r/2)*(NH+VGAP);
+    LO[id] = {cx, cy, x:cx-NW/2, y:cy-NH/2};
+    let rs = rowStart;
+    kids.forEach(k=>{ place(k.id, col+1, rs); rs+=rows(k.id); });
   }
-
-  // 找根节点
-  const roots = data.filter(m => !m.p);
+  const roots = data.filter(m=>!m.p);
   let globalRow = 0;
-  roots.forEach(r => {
-    place(r.id, 0, globalRow);
-    globalRow += subtreeRows(r.id);
+  roots.forEach(r=>{ place(r.id,0,globalRow); globalRow+=rows(r.id); });
+
+  const maxGen = Math.max(...data.map(m=>m.gen));
+  const cW = PAD*2 + maxGen*(NW+HGAP);
+  const cH = HDR + PAD*2 + globalRow*(NH+VGAP) + 60;
+
+  const canvas = document.createElement('canvas');
+  const DPR = 2; // 高清
+  canvas.width = cW*DPR; canvas.height = cH*DPR;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(DPR,DPR);
+
+  // 背景
+  const bg = ctx.createLinearGradient(0,0,0,cH);
+  bg.addColorStop(0,'#1a2e1a'); bg.addColorStop(0.12,'#2d5a3d'); bg.addColorStop(0.12,'#f4f4f8'); bg.addColorStop(1,'#f4f4f8');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,cW,cH);
+
+  // 标题区
+  ctx.fillStyle='#fff';
+  ctx.font='bold 22px \'PingFang SC\',\'Microsoft YaHei\',sans-serif';
+  ctx.textAlign='center';
+  ctx.fillText('🌳 周氏至德堂家谱', cW/2, 36);
+  ctx.font='12px \'PingFang SC\',\'Microsoft YaHei\',sans-serif';
+  ctx.fillStyle='rgba(255,255,255,0.75)';
+  ctx.fillText('导出时间：'+now+'   共 '+data.length+' 人', cW/2, 58);
+
+  // 字辈诗句（金色）
+  ctx.fillStyle='#f5c842';
+  ctx.font='11px \'PingFang SC\',\'Microsoft YaHei\',sans-serif';
+  const zibi = '字辈：朋昌魁林伍 · 廷玉佩保真 · 诗书延世泽 · 礼乐振家声 · 忠孝承先业 · 贤良裕后昆 · 祖宗传至德 · 丕焕我人文';
+  ctx.fillText(zibi, cW/2, 80);
+
+  // 分隔线
+  ctx.strokeStyle='rgba(255,255,255,0.2)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(PAD, HDR-10); ctx.lineTo(cW-PAD, HDR-10); ctx.stroke();
+
+  // 连线
+  data.forEach(m=>{
+    if (!m.p || !LO[m.p] || !LO[m.id]) return;
+    const pp=LO[m.p], cp=LO[m.id];
+    const col = GC[m.gen-1]||'#888';
+    ctx.strokeStyle=col+'99'; ctx.lineWidth=1.5;
+    ctx.beginPath();
+    const x1=pp.x+NW, y1=pp.cy, x2=cp.x, y2=cp.cy, mx=(x1+x2)/2;
+    ctx.moveTo(x1,y1);
+    ctx.bezierCurveTo(mx,y1,mx,y2,x2,y2);
+    ctx.stroke();
   });
 
-  // 计算画布大小
-  const maxCol = Math.max(...data.map(m => m.gen - 1));
-  const svgW = (maxCol + 1) * (NW + HGAP) + 40;
-  const svgH = globalRow * (NH + VGAP) + 40;
+  // 节点
+  data.forEach(m=>{
+    const pos=LO[m.id]; if(!pos) return;
+    const col=GC[m.gen-1]||'#888';
+    const {x,y}=pos;
 
-  // 生成 SVG 内容
-  let svgLines = '', svgNodes = '';
+    // 阴影
+    ctx.shadowColor='rgba(0,0,0,0.12)'; ctx.shadowBlur=8; ctx.shadowOffsetY=3;
 
-  data.forEach(m => {
-    const pos = layout[m.id];
-    if (!pos) return;
-    const col = GC[m.gen-1] || '#888';
+    // 卡片
+    ctx.fillStyle='#fff';
+    roundRect(ctx,x,y,NW,NH,8); ctx.fill();
+    ctx.shadowColor='transparent';
 
-    // 连线（贝塞尔曲线）
-    if (m.p && layout[m.p]) {
-      const pp = layout[m.p];
-      const x1 = pp.x + NW, y1 = pp.cy;
-      const x2 = pos.x, y2 = pos.cy;
-      const mx = (x1 + x2) / 2;
-      svgLines += `<path d="M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}" fill="none" stroke="${col}" stroke-width="1.5" opacity="0.6"/>`;
-    }
+    // 左色条
+    ctx.fillStyle=col;
+    roundRect(ctx,x,y,5,NH,4); ctx.fill();
 
-    // 节点卡片
-    const x = pos.x + 20, y = pos.y + 20;
-    const gi = m.g==='男'?'👨':m.g==='女'?'👩':'👤';
-    const sg = m.sg||(m.g==='男'?'女':'男');
-    const sCol = sg==='男'?'#0071e3':'#e8405a';
-    const sSym = sg==='男'?'♂':'♀';
+    // 代数角标
+    ctx.fillStyle=col;
+    roundRect(ctx,x+NW-26,y+3,24,14,4); ctx.fill();
+    ctx.fillStyle='#fff'; ctx.font='bold 9px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('第'+m.gen+'代', x+NW-14, y+13);
 
-    svgNodes += `<g transform="translate(${x},${y})">`;
-    // 卡片背景
-    svgNodes += `<rect x="0" y="0" width="${NW}" height="${NH}" rx="8" fill="white" stroke="${col}" stroke-width="1.5" filter="url(#shadow)"/>`;
-    svgNodes += `<rect x="0" y="0" width="5" height="${NH}" rx="4" fill="${col}"/>`;
-    // 代数标记
-    svgNodes += `<rect x="${NW-22}" y="2" width="20" height="13" rx="4" fill="${col}"/>`;
-    svgNodes += `<text x="${NW-12}" y="12" text-anchor="middle" font-size="9" fill="white" font-weight="bold">第${m.gen}代</text>`;
     // 姓名
-    svgNodes += `<text x="12" y="20" font-size="13" font-weight="bold" fill="#1d1d1f">${gi} ${m.n}</text>`;
-    // 生死年
-    if (m.b || m.d) {
-      const dt = (m.b||'') + (m.d?' 沃'+m.d:'');
-      svgNodes += `<text x="12" y="32" font-size="9" fill="#888">${dt}</text>`;
+    ctx.fillStyle='#1d1d1f'; ctx.font='bold 13px \'PingFang SC\',\'Microsoft YaHei\',sans-serif'; ctx.textAlign='left';
+    const gi=m.g==='男'?'♂':m.g==='女'?'♀':'?';
+    ctx.fillText(gi+' '+m.n, x+10, y+22);
+
+    // 生卒
+    if(m.b||m.d){
+      ctx.fillStyle='#888'; ctx.font='9px sans-serif';
+      ctx.fillText((m.b||'')+(m.d?' 殁'+m.d:''), x+10, y+36);
     }
     // 配偶
-    if (m.s) {
-      svgNodes += `<text x="12" y="44" font-size="9" fill="#666">♥ <tspan fill="${sCol}">${sSym}</tspan> ${m.s}</text>`;
+    if(m.s){
+      const sg=m.sg||(m.g==='男'?'女':'男');
+      ctx.fillStyle=sg==='男'?'#0071e3':'#e8405a'; ctx.font='9px sans-serif';
+      ctx.fillText('♥ '+(sg==='男'?'♂':'♀')+' '+m.s, x+10, y+50);
     }
-    svgNodes += '</g>';
   });
 
-  const html = `<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=0.5,maximum-scale=5">
-<title>周氏至德堂家谱</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f0f0f5}
-.hdr{background:linear-gradient(135deg,#1a2e1a,#2d5a3d);color:#fff;padding:20px 16px 16px;text-align:center}
-.hdr h1{font-size:20px;font-weight:800;letter-spacing:3px}
-.hdr p{font-size:11px;opacity:.7;margin-top:4px}
-.zibi{background:rgba(255,255,255,.1);border-radius:8px;padding:8px 12px;font-size:10px;line-height:1.9;margin-top:10px;color:#f5c842}
-.legend{display:flex;flex-wrap:wrap;gap:8px;padding:10px 14px;background:#fff;border-bottom:1px solid #eee}
-.leg{display:flex;align-items:center;gap:4px;font-size:10px;color:#555}
-.dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
-.map-wrap{overflow:auto;-webkit-overflow-scrolling:touch;background:#f7f7fb;padding:20px}
-svg{display:block}
-.tip{text-align:center;font-size:11px;color:#aaa;padding:10px;background:#fff}
-</style>
-</head>
-<body>
-<div class="hdr">
-  <div style="font-size:36px">🌳</div>
-  <h1>周氏至德堂家谱</h1>
-  <p>导出时间：${now} &middot; 共 ${data.length} 人</p>
-  <div class="zibi">字辈：朋昌魁林伍 · 廷玉乩保真 · 诗书延世泽 · 礼乐振家声 · 忠孝承先业 · 贤良裕后昆 · 祖宗传至德 · 丕焉我人文</div>
-</div>
-<div class="legend">${GC.map((c,i)=>'<div class="leg"><div class="dot" style="background:'+c+'"></div>第'+(i+1)+'代</div>').join('')}</div>
-<div class="tip">↔️ 左右滑动浏览 &nbsp;&middot;&nbsp; 手机可双指缩放</div>
-<div class="map-wrap">
-<svg width="${svgW}" height="${svgH}" xmlns="http://www.w3.org/2000/svg">
-<defs>
-  <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
-    <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000018"/>
-  </filter>
-</defs>
-${svgLines}
-${svgNodes}
-</svg>
-</div>
-<p style="text-align:center;color:#bbb;font-size:10px;padding:14px 0">周氏至德堂家谱 &middot; ${now}</p>
-</body></html>`;
+  // 底部署名
+  ctx.fillStyle='#aaa'; ctx.font='10px sans-serif'; ctx.textAlign='center';
+  ctx.fillText('周氏至德堂家谱 · '+now, cW/2, cH-16);
 
-  const blob = new Blob([html], {type:'text/html;charset=utf-8'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = '周氏家谱_' + now.replace(/\//g,'-') + '.html';
-  a.click();
-  URL.revokeObjectURL(a.href);
-  showToast('✅ 思维导图已下载');
+  // 导出 PNG
+  canvas.toBlob(blob=>{
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='周氏家谱_'+now.replace(/\//g,'-')+'.png';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    showToast('✅ 家谱PNG已下载');
+  },'image/png');
+}
+
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
 }
 
 function toggleAllCollapse() {
