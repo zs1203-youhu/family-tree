@@ -449,8 +449,9 @@ function makeCard(m) {
   card.dataset.id = m.id;
   card.draggable = true;
 
+  const genderIcon = m.g === '男' ? '👨' : m.g === '女' ? '👩' : '👤';
   let html = '<span class="gen-badge">' + m.gen + '</span>';
-  html += '<div class="cname">' + m.n + '</div>';
+  html += '<div class="cname"><span style="font-size:12px;margin-right:3px">' + genderIcon + '</span>' + m.n + '</div>';
   if (m.b || m.d) html += '<div class="cdates">' + (m.b||'') + (m.d ? ' 殁'+m.d : '') + '</div>';
   if (m.s) {
     html += '<div class="cspouse">';
@@ -515,7 +516,8 @@ function renderGen() {
       gc.className = 'gcard gen-' + m.gen;
       gc.style.borderLeftColor = GCOL[m.gen] || '#ccc';
       const par = M.find(x => x.id === m.p);
-      gc.innerHTML = '<div class="gname">' + m.n + '</div>' +
+      const gi = m.g === '男' ? '👨' : m.g === '女' ? '👩' : '👤';
+      gc.innerHTML = '<div class="gname"><span style="font-size:11px;margin-right:3px">' + gi + '</span>' + m.n + '</div>' +
         (m.b ? '<div class="gdates">生 ' + m.b + (m.d ? ' 殁 '+m.d : '') + '</div>' : '') +
         (m.s ? '<div class="gspouse-name">♥ ' + m.s + '</div>' + ((m.sb||m.sd) ? '<div class="gspouse-dates">' + (m.sb?'生 '+m.sb:'') + (m.sd?' 殁 '+m.sd:'') + '</div>' : '') : '') +
         (par ? '<div class="gparent">↑ ' + par.n + '</div>' : '');
