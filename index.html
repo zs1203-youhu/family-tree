@@ -164,7 +164,7 @@ header{background:rgba(255,255,255,0.92);backdrop-filter:blur(20px);-webkit-back
         <button class="btn btn-outline" id="btn-collapse-all" onclick="toggleAllCollapse()">全部折叠</button>
         <button class="btn btn-outline" id="btn-backup" onclick="showBackups()" style="display:none">📦 备份</button>
         <button class="btn btn-outline" onclick="exportCSV()">导出CSV</button>
-        <button class="btn btn-outline" onclick="exportPDF()">📄 导出PDF</button>
+        <button class="btn btn-blue" onclick="downloadGenealogyHTML()">📱 家谱下载</button>
         <button class="btn btn-outline" onclick="window.print()">打印</button>
         <button class="btn btn-gray" onclick="logout()">退出</button>
       </div>
@@ -839,11 +839,15 @@ function zoomFit() {
 // 滚轮缩放
 function initZoomPan() {
   const view = document.getElementById('tree-view');
+  let wheelTimer = null;
   view.addEventListener('wheel', e => {
     e.preventDefault();
-    const delta = e.deltaY > 0 ? -0.08 : 0.08;
-    ZOOM = Math.min(3, Math.max(0.2, ZOOM + delta));
-    applyTransform();
+    clearTimeout(wheelTimer);
+    wheelTimer = setTimeout(() => {
+      const delta = e.deltaY > 0 ? -0.05 : 0.05;
+      ZOOM = Math.min(3, Math.max(0.2, ZOOM + delta));
+      applyTransform();
+    }, 16);
   }, { passive: false });
   // 鼠标平移
   view.addEventListener('mousedown', e => {
@@ -875,17 +879,71 @@ function initZoomPan() {
   }, { passive: true });
 }
 
-// ===== PDF EXPORT =====
-function exportPDF() {
-  // 使用浏览器内置打印功能，首先重置缩放到 100% 再打印
-  const prevZoom = ZOOM, prevX = PAN_X, prevY = PAN_Y;
-  ZOOM = 1; PAN_X = 0; PAN_Y = 0; applyTransform();
-  // 给浏览器时间渲染
-  setTimeout(() => {
-    window.print();
-    // 恢复缩放
-    setTimeout(() => { ZOOM = prevZoom; PAN_X = prevX; PAN_Y = prevY; applyTransform(); }, 500);
-  }, 200);
+// ===== 家谱下载（生成竺立手机可阅读 HTML） =====
+function downloadGenealogyHTML() {
+  const data = M;
+  const now = new Date().toLocaleDateString('zh-CN');
+
+  // 递归生成竺向章节树 HTML
+  function buildSection(parentId, depth) {
+    const children = data.filter(m => m.p === parentId);
+    if (!children.length) return '';
+    let html = '<ul style="list-style:none;padding-left:' + (depth > 0 ? '18px' : '0') + ';margin:0">';
+    children.forEach(m => {
+      const gi = m.g === '男' ? '👨' : m.g === '女' ? '👩' : '👤';
+      const dates = (m.b || m.d) ? '<span style="color:#86868b;font-size:11px;margin-left:4px">' + (m.b||'') + (m.d?' 沃'+m.d:'') + '</span>' : '';
+      const sg = m.sg || (m.g==='男'?'女':'男');
+      const sic = m.s ? '<span style="font-size:10px;color:' + (sg==='男'?'#0071e3':'#e8405a') + '">' + (sg==='男'?'♂':'♀') + '</span> ' : '';
+      const spouse = m.s ? '<div style="font-size:11px;color:#555;margin-top:2px;padding-left:4px">♥ ' + sic + m.s + (m.sb?' 生'+m.sb:'') + (m.sd?' 沃'+m.sd:'') + '</div>' : '';
+      const bio = m.bio ? '<div style="font-size:10px;color:#aaa;margin-top:2px;padding-left:4px">' + m.bio + '</div>' : '';
+      const hasKids = data.some(c => c.p === m.id);
+      const borderColor = ['#8b4513','#4a7c59','#7b68b5','#c9a84c','#4a90d9','#95a5a6','#e8405a'][m.gen-1] || '#ccc';
+      html += '<li style="margin:6px 0">';
+      html += '<div style="background:#fff;border-radius:10px;padding:8px 10px;border-left:3px solid ' + borderColor + ';box-shadow:0 1px 4px rgba(0,0,0,0.08)">';
+      html += '<div style="font-size:13px;font-weight:700">' + gi + ' ' + m.n + dates + '</div>';
+      html += spouse + bio;
+      html += '</div>';
+      if (hasKids) html += buildSection(m.id, depth + 1);
+      html += '</li>';
+    });
+    html += '</ul>';
+    return html;
+  }
+
+  const body = buildSection(null, 0);
+  const html = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>周氏至德堂家谱 ${now}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,'Microsoft YaHei',sans-serif;background:#f5f5f7;padding:16px;max-width:520px;margin:0 auto}
+.cover{text-align:center;padding:28px 0 20px;margin-bottom:16px}
+.cover h1{font-size:22px;font-weight:800;letter-spacing:2px}
+.cover p{font-size:12px;color:#86868b;margin-top:6px}
+.zibi{background:#1d1d1f;color:#f5c842;border-radius:10px;padding:10px 14px;font-size:11px;line-height:1.9;margin-bottom:16px;letter-spacing:0.5px}
+</style>
+</head>
+<body>
+<div class="cover">
+  <div style="font-size:36px">🌳</div>
+  <h1>周氏至德堂家谱</h1>
+  <p>导出时间：${now} · 共 ${data.length} 人</p>
+</div>
+<div class="zibi">字辈：朋昌魁林伍 · 廷玉乩保真 · 诗书延世泽 · 礼乐振家声 · 忠孝承先业 · 贤良裕后昆 · 祖宗传至德 · 丕焉我人文</div>
+${body}
+<p style="text-align:center;color:#aeaeb2;font-size:11px;margin-top:24px;padding-bottom:20px">周氏至德堂家谱 · ${now}</p>
+</body></html>`;
+
+  const blob = new Blob([html], {type:'text/html;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '周氏家谱_' + now.replace(/\//g,'-') + '.html';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast('✅ 家谱文件已下载');
 }
 
 function toggleAllCollapse() {
