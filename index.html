@@ -153,6 +153,7 @@ header{background:rgba(255,255,255,0.92);backdrop-filter:blur(20px);-webkit-back
       <div class="hdr-btns">
         <button class="btn btn-blue" onclick="saveData()">💾 保存</button>
         <button class="btn btn-outline" id="btn-collapse-all" onclick="toggleAllCollapse()">全部折叠</button>
+        <button class="btn btn-outline" onclick="showBackups()">📦 备份</button>
         <button class="btn btn-outline" onclick="exportCSV()">导出CSV</button>
         <button class="btn btn-outline" onclick="window.print()">打印</button>
         <button class="btn btn-gray" onclick="logout()">退出</button>
@@ -223,6 +224,18 @@ header{background:rgba(255,255,255,0.92);backdrop-filter:blur(20px);-webkit-back
       <button class="btn btn-gray" onclick="closeModal()">取消</button>
       <button class="btn btn-blue" onclick="saveMember()">保存</button>
     </div>
+  </div>
+</div>
+
+<!-- BACKUP MODAL -->
+<div class="modal" id="backup-modal">
+  <div class="modal-bg" onclick="closeBackups()"></div>
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <h2>📦 备份记录</h2>
+      <button class="modal-close" onclick="closeBackups()">×</button>
+    </div>
+    <div class="modal-body" id="backup-list" style="padding:12px"></div>
   </div>
 </div>
 
@@ -366,9 +379,54 @@ function logout() {
 }
 
 // ===== DATA =====
+const BACKUP_KEY = 'zhou_family_backups';
+const MAX_BACKUPS = 15;
+
+function saveBackup() {
+  const backups = JSON.parse(localStorage.getItem(BACKUP_KEY) || '[]');
+  const now = new Date();
+  const label = now.toLocaleString('zh-CN', {month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  backups.unshift({ time: now.toISOString(), label, count: M.length, data: JSON.stringify({M, NI}) });
+  if (backups.length > MAX_BACKUPS) backups.length = MAX_BACKUPS;
+  localStorage.setItem(BACKUP_KEY, JSON.stringify(backups));
+}
+
 function saveData() {
+  saveBackup();
   localStorage.setItem(STORAGE_KEY, JSON.stringify({M, NI}));
-  showToast('✅ 已保存');
+  showToast('✅ 已保存（自动备份）');
+}
+
+function showBackups() {
+  const backups = JSON.parse(localStorage.getItem(BACKUP_KEY) || '[]');
+  const el = document.getElementById('backup-list');
+  if (!backups.length) {
+    el.innerHTML = '<p style="color:#86868b;text-align:center;padding:20px">暂无备份记录<br>下次点击「💾 保存」时会自动备份</p>';
+  } else {
+    el.innerHTML = '<p style="font-size:12px;color:#86868b;margin-bottom:10px">保留最近 ' + MAX_BACKUPS + ' 次备份，点击「恢复」可将数据回滚到该时刻</p>' +
+      backups.map((b, i) => '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f2f2f7">' +
+        '<div><div style="font-size:13px;font-weight:600">' + b.label + '</div>' +
+        '<div style="font-size:11px;color:#86868b">共 ' + b.count + ' 人</div></div>' +
+        '<button onclick="restoreBackup(' + i + ')" style="padding:6px 14px;background:#0071e3;color:#fff;border:none;border-radius:8px;font-size:12px;cursor:pointer">恢复</button>' +
+        '</div>').join('');
+  }
+  document.getElementById('backup-modal').classList.add('on');
+}
+
+function restoreBackup(i) {
+  const backups = JSON.parse(localStorage.getItem(BACKUP_KEY) || '[]');
+  if (!backups[i]) return;
+  if (!confirm('确认要恢复到㌀' + backups[i].label + '㌁的备份吗？当前数据将被替换。')) return;
+  const snapshot = JSON.parse(backups[i].data);
+  M = snapshot.M; NI = snapshot.NI;
+  localStorage.setItem(STORAGE_KEY, backups[i].data);
+  closeBackups();
+  render();
+  showToast('✅ 已恢复到 ' + backups[i].label);
+}
+
+function closeBackups() {
+  document.getElementById('backup-modal').classList.remove('on');
 }
 
 function showToast(msg) {
