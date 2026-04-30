@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+  <title>周氏至德堂家谱 V2</title>
+  <style>
+    :root {
+      --bg: #f6f1e8;
+      --bg-soft: #fbf8f3;
+      --card: rgba(255,255,255,0.88);
+      --card-strong: rgba(255,255,255,0.96);
+      --text: #1f1b16;
+      --muted: #74685d;
+      --line: rgba(89, 68, 49, 0.14);
+      --brand: #8b5e34;
+      --brand-2: #b78746;
+      --accent: #234b3d;
+      --shadow: 0 18px 50px rgba(58, 41, 24, 0.10);
+      --radius-xl: 28px;
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', 'Noto Sans SC', sans-serif;
+      --font-serif: 'STSong', 'Songti SC', 'Noto Serif SC', serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: radial-gradient(circle at top, #fffaf3 0%, var(--bg) 52%, #efe5d8 100%); color: var(--text); font-family: var(--font-sans); overflow-x: hidden; }
+    body { min-height: 100vh; overflow-x: hidden; }
+    .shell { max-width: 960px; margin: 0 auto; padding: 20px 16px 120px; }
+    .hero {
+      position: sticky; top: 0; z-index: 20; margin: 0 -16px 18px; padding: 16px 16px 14px;
+      background: rgba(246,241,232,0.82); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid rgba(89, 68, 49, 0.08);
+    }
+    .hero-top { display: flex; justify-content: space-between; gap: 12px; align-items: start; }
+    .eyebrow { font-size: 12px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
+    .title { margin: 8px 0 6px; font-family: var(--font-serif); font-size: clamp(28px, 7vw, 46px); line-height: 1.06; letter-spacing: .02em; }
+    .subtitle { margin: 0; font-size: 14px; line-height: 1.7; color: var(--muted); max-width: 640px; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .btn { border: 0; border-radius: 999px; padding: 11px 14px; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .btn-primary { background: linear-gradient(135deg, var(--brand), var(--brand-2)); color: #fff; box-shadow: 0 8px 24px rgba(139,94,52,0.25); }
+    .btn-soft { background: rgba(255,255,255,0.72); color: var(--text); border: 1px solid rgba(89,68,49,0.08); }
+    .hero-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 16px; }
+    .stat { background: var(--card); border: 1px solid rgba(89,68,49,0.07); border-radius: 18px; padding: 14px 14px 12px; box-shadow: var(--shadow); }
+    .stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+    .stat-value { margin-top: 8px; font-size: 24px; font-weight: 800; }
+    .toolbar { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 18px; }
+    .search-box, .segmented, .generation-strip, .panel {
+      background: var(--card); border: 1px solid rgba(89,68,49,0.07); box-shadow: var(--shadow);
+    }
+    .search-box { display: flex; gap: 10px; align-items: center; border-radius: 18px; padding: 14px 16px; }
+    .search-box input { flex: 1; border: 0; background: transparent; outline: none; font-size: 16px; color: var(--text); }
+    .segmented { display: inline-flex; gap: 8px; padding: 6px; border-radius: 999px; width: fit-content; }
+    .segmented button { border: 0; background: transparent; border-radius: 999px; padding: 10px 14px; cursor: pointer; font-weight: 600; color: var(--muted); }
+    .segmented button.on { background: #fff; color: var(--text); box-shadow: 0 6px 18px rgba(60,44,28,0.10); }
+    .generation-strip { border-radius: 22px; padding: 12px; overflow-x: auto; overflow-y: hidden; white-space: nowrap; -webkit-overflow-scrolling: touch; touch-action: pan-x; }
+    .chip { display: inline-flex; align-items: center; gap: 8px; margin-right: 8px; border-radius: 999px; padding: 10px 14px; border: 1px solid rgba(89,68,49,0.08); background: rgba(255,255,255,0.82); color: var(--text); cursor: pointer; }
+    .chip.on { background: linear-gradient(135deg, rgba(139,94,52,0.14), rgba(183,135,70,0.18)); border-color: rgba(139,94,52,0.18); }
+    .chip-count { color: var(--muted); font-size: 12px; }
+    .panel { border-radius: var(--radius-xl); padding: 18px; margin-top: 16px; }
+    .tree-row { margin-bottom: 18px; }
+    .tree-row-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px; }
+    .tree-row-title { font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+    .tree-row-count { font-size: 12px; color: var(--muted); }
+    .tree-scroll { display:flex; gap:12px; overflow-x:auto; overflow-y:hidden; padding-bottom:4px; -webkit-overflow-scrolling: touch; touch-action: pan-x; }
+    .tree-node { min-width: 220px; max-width: 220px; background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(247,241,233,0.92)); border:1px solid rgba(89,68,49,0.08); border-radius: 22px; padding: 14px; box-shadow: var(--shadow); }
+    .branch-tree { display:grid; gap:14px; }
+    .branch-root { background: linear-gradient(135deg, rgba(139,94,52,0.10), rgba(255,255,255,0.96)); border:1px solid rgba(139,94,52,0.12); border-radius: 24px; padding: 16px; box-shadow: var(--shadow); }
+    .branch-root-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+    .branch-root-name { font-size: 22px; font-weight: 900; }
+    .branch-root-meta { margin-top:8px; font-size:13px; color:var(--muted); line-height:1.7; }
+    .branch-groups { display:grid; gap:12px; margin-top:14px; }
+    .branch-group { background: rgba(255,255,255,0.72); border:1px solid rgba(89,68,49,0.08); border-radius: 20px; padding: 12px; }
+    .branch-group-title { font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin-bottom:10px; }
+    .branch-children { display:flex; gap:10px; overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch; touch-action:pan-x; padding-bottom:2px; }
+    .branch-child-card { min-width:190px; max-width:190px; background:#fff; border:1px solid rgba(89,68,49,0.08); border-radius:18px; padding:12px; box-shadow: 0 8px 22px rgba(58,41,24,0.08); }
+    .branch-child-name { font-size:16px; font-weight:800; }
+    .branch-child-meta { margin-top:6px; font-size:12px; line-height:1.6; color:var(--muted); }
+    .tree-node-name { font-size: 18px; font-weight: 800; }
+    .tree-node-meta { margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--muted); }
+    .tree-node-line { margin-top: 12px; display:flex; gap:8px; flex-wrap:wrap; }
+    .tree-mini-chip { font-size: 11px; padding: 5px 8px; border-radius: 999px; background: rgba(139,94,52,0.08); color: var(--brand); }
+    .section-head { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 14px; }
+    .section-title { font-family: var(--font-serif); font-size: 22px; }
+    .section-note { color: var(--muted); font-size: 13px; }
+    .featured-grid { display: grid; gap: 12px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .feature-card {
+      min-height: 136px; border-radius: 20px; padding: 16px; position: relative; overflow: hidden;
+      background: linear-gradient(135deg, rgba(255,255,255,0.96), rgba(247,241,233,0.88)); border: 1px solid rgba(89,68,49,0.07);
+    }
+    .feature-card::after { content: ''; position: absolute; right: -16px; bottom: -18px; width: 90px; height: 90px; border-radius: 50%; background: rgba(139,94,52,0.08); }
+    .feature-label { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+    .feature-name { margin-top: 10px; font-size: 20px; font-weight: 800; position: relative; z-index: 1; }
+    .feature-meta { margin-top: 8px; color: var(--muted); font-size: 13px; line-height: 1.6; position: relative; z-index: 1; }
+    .person-list { display: grid; gap: 12px; }
+    .person-card {
+      display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center;
+      background: var(--card-strong); border: 1px solid rgba(89,68,49,0.08); border-radius: 22px; padding: 16px; box-shadow: var(--shadow);
+    }
+    .person-main { min-width: 0; }
+    .person-top { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; }
+    .person-name { font-size: 20px; font-weight: 800; }
+    .generation-badge { font-size: 11px; padding: 5px 8px; border-radius: 999px; background: rgba(35,75,61,0.10); color: var(--accent); font-weight: 700; }
+    .person-dates, .person-lineage, .person-spouse { margin-top: 6px; font-size: 13px; color: var(--muted); line-height: 1.6; }
+    .person-actions { display: flex; flex-direction: column; gap: 8px; }
+    .ghost-btn { border: 0; background: rgba(139,94,52,0.08); color: var(--brand); border-radius: 12px; padding: 10px 12px; font-weight: 700; cursor: pointer; }
+    .bottom-sheet {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; transform: translateY(105%); transition: transform .28s ease;
+      padding: 12px 12px calc(18px + env(safe-area-inset-bottom));
+    }
+    .bottom-sheet.on { transform: translateY(0); }
+    .sheet-backdrop { position: fixed; inset: 0; background: rgba(25,18,12,0.28); z-index: 35; opacity: 0; pointer-events: none; transition: opacity .2s ease; }
+    .sheet-backdrop.on { opacity: 1; pointer-events: auto; }
+    .sheet-box {
+      max-width: 960px; margin: 0 auto; background: rgba(255,252,247,0.98); border-radius: 28px 28px 20px 20px;
+      box-shadow: 0 -10px 40px rgba(25,18,12,0.16); padding: 14px 16px 18px; border: 1px solid rgba(89,68,49,0.10);
+    }
+    .sheet-handle { width: 46px; height: 5px; border-radius: 999px; background: rgba(89,68,49,0.16); margin: 0 auto 14px; }
+    .sheet-title { font-family: var(--font-serif); font-size: 24px; }
+    .sheet-meta { color: var(--muted); font-size: 13px; line-height: 1.7; margin-top: 8px; }
+    .sheet-bio { margin-top: 14px; background: rgba(139,94,52,0.06); border-radius: 18px; padding: 14px; font-size: 14px; line-height: 1.8; }
+    .sheet-grid { display: grid; gap: 10px; margin-top: 14px; }
+    .sheet-item { background: #fff; border: 1px solid rgba(89,68,49,0.08); border-radius: 16px; padding: 12px 14px; }
+    .sheet-item-label { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+    .sheet-item-value { margin-top: 6px; font-size: 15px; line-height: 1.7; }
+    .empty { text-align: center; color: var(--muted); font-size: 14px; padding: 24px 8px 8px; }
+    @media (max-width: 760px) {
+      .hero-stats, .featured-grid { grid-template-columns: 1fr; }
+      .person-card { grid-template-columns: 1fr; }
+      .person-actions { flex-direction: row; }
+      .title { max-width: 88vw; }
+    }
+  </style>
+</head>
+<body>
+  <div class="hero">
+    <div class="shell" style="padding-top:0;padding-bottom:0;">
+      <div class="hero-top">
+        <div>
+          <div class="eyebrow">Family Tree V2 Preview</div>
+          <h1 class="title">周氏至德堂，<br/>更适合今天手机端的一版。</h1>
+          <p class="subtitle">内容保持原谱逻辑不变，先把浏览、检索、人物详情和移动端体验升级。当前是 V2 方向样稿，不动旧站。</p>
+        </div>
+      </div>
+      <div class="hero-actions">
+        <button class="btn btn-primary" id="btn-scroll-list">查看成员列表</button>
+        <button class="btn btn-soft" id="btn-scroll-featured">看重点人物</button>
+      </div>
+      <div class="hero-stats">
+        <div class="stat"><div class="stat-label">当前成员</div><div class="stat-value" id="stat-count">--</div></div>
+        <div class="stat"><div class="stat-label">可见代际</div><div class="stat-value" id="stat-generations">--</div></div>
+        <div class="stat"><div class="stat-label">当前模式</div><div class="stat-value" id="stat-mode">浏览版</div></div>
+      </div>
+    </div>
+  </div>
+
+  <main class="shell">
+    <div class="toolbar">
+      <div class="search-box">
+        <span>🔎</span>
+        <input id="searchInput" type="text" placeholder="搜索姓名、配偶、简介、辈分" />
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;">
+        <div class="segmented" role="tablist" aria-label="筛选模式">
+          <button class="on" data-filter="all">全部成员</button>
+          <button data-filter="zhou">只看周姓</button>
+        </div>
+        <div class="segmented" id="viewModeSwitch" role="tablist" aria-label="视图切换">
+          <button class="on" data-view="list">列表</button>
+          <button data-view="tree">树状</button>
+        </div>
+      </div>
+      <div class="generation-strip" id="generationStrip"></div>
+    </div>
+
+    <section class="panel" id="featuredPanel">
+      <div class="section-head">
+        <div>
+          <div class="section-title">重点人物入口</div>
+          <div class="section-note">先给手机端一个更轻、更直观的首屏入口，不用一上来就扎进整棵树。</div>
+        </div>
+      </div>
+      <div class="featured-grid" id="featuredGrid"></div>
+    </section>
+
+    <section class="panel" id="treePanel" style="display:none;">
+      <div class="section-head">
+        <div>
+          <div class="section-title">树状视图</div>
+          <div class="section-note" id="treeNote">按代际纵向阅读，先看主枝，再点开人物详情。</div>
+        </div>
+      </div>
+      <div id="treeRows"></div>
+    </section>
+
+    <section class="panel" id="listPanel">
+      <div class="section-head">
+        <div>
+          <div class="section-title">成员列表</div>
+          <div class="section-note" id="resultNote">按代际和关键词快速浏览，再点开看人物详情。</div>
+        </div>
+      </div>
+      <div class="person-list" id="personList"></div>
+      <div class="empty" id="emptyState" style="display:none;">没有找到匹配成员，换个关键词试试。</div>
+    </section>
+  </main>
+
+  <div class="sheet-backdrop" id="sheetBackdrop"></div>
+  <div class="bottom-sheet" id="detailSheet">
+    <div class="sheet-box">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title" id="sheetTitle">人物详情</div>
+      <div class="sheet-meta" id="sheetMeta"></div>
+      <div class="sheet-bio" id="sheetBio">暂无简介</div>
+      <div class="sheet-grid" id="sheetGrid"></div>
+    </div>
+  </div>
+
+  <script src="./def-data.js"></script>
+  <script>
+    const STORAGE_KEY = 'zhou_family_v6';
+    const BACKUP_KEY = 'zhou_family_backups';
+    let M = [];
+    let NI = 79;
+    let currentFilter = 'all';
+    let currentGeneration = 'all';
+    let searchKeyword = '';
+    let currentView = 'list';
+
+    function loadData() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          M = Array.isArray(parsed.M) ? parsed.M : [];
+          NI = parsed.NI || 79;
+        }
+      } catch (e) {}
+      if (!Array.isArray(M) || !M.length) {
+        M = JSON.parse(JSON.stringify(DEF));
+      }
+      DEF.forEach(d => {
+        if (!M.find(x => x.id === d.id)) M.push(JSON.parse(JSON.stringify(d)));
+      });
+    }
+
+    function generations() {
+      return [...new Set(M.map(item => item.gen).filter(Boolean))].sort((a, b) => a - b);
+    }
+
+    function filteredList() {
+      const kw = searchKeyword.trim().toLowerCase();
+      return M.filter(item => {
+        if (currentFilter === 'zhou' && !(item.n || '').includes('周')) return false;
+        if (currentGeneration !== 'all' && item.gen !== Number(currentGeneration)) return false;
+        if (!kw) return true;
+        const hay = [item.n, item.s, item.bio, '第' + item.gen + '代'].join(' ').toLowerCase();
+        return hay.includes(kw);
+      }).sort((a, b) => (a.gen || 99) - (b.gen || 99) || a.id - b.id);
+    }
+
+    function parentName(person) {
+      const p = M.find(x => x.id === person.p);
+      return p ? p.n : '家族根节点';
+    }
+
+    function updateStats() {
+      document.getElementById('stat-count').textContent = M.length;
+      document.getElementById('stat-generations').textContent = generations().length;
+    }
+
+    function renderGenerationStrip() {
+      const strip = document.getElementById('generationStrip');
+      const gens = generations();
+      strip.innerHTML = '';
+      const allBtn = document.createElement('button');
+      allBtn.className = 'chip' + (currentGeneration === 'all' ? ' on' : '');
+      allBtn.innerHTML = '<span>全部代际</span><span class="chip-count">' + M.length + '</span>';
+      allBtn.onclick = () => { currentGeneration = 'all'; renderAll(); };
+      strip.appendChild(allBtn);
+      gens.forEach(gen => {
+        const count = M.filter(x => x.gen === gen).length;
+        const btn = document.createElement('button');
+        btn.className = 'chip' + (String(currentGeneration) === String(gen) ? ' on' : '');
+        btn.innerHTML = '<span>第 ' + gen + ' 代</span><span class="chip-count">' + count + '</span>';
+        btn.onclick = () => { currentGeneration = gen; renderAll(); };
+        strip.appendChild(btn);
+      });
+    }
+
+    function renderFeatured() {
+      const featured = filteredList().slice(0, 4);
+      const grid = document.getElementById('featuredGrid');
+      grid.innerHTML = '';
+      featured.forEach(item => {
+        const card = document.createElement('article');
+        card.className = 'feature-card';
+        card.innerHTML = `
+          <div class="feature-label">第 ${item.gen || '-'} 代人物</div>
+          <div class="feature-name">${item.n || '未命名成员'}</div>
+          <div class="feature-meta">${item.bio || '点击查看这位成员的完整信息、亲缘定位和配偶记录。'}</div>
+        `;
+        card.onclick = () => openDetail(item.id);
+        grid.appendChild(card);
+      });
+    }
+
+    function buildChildrenMap(list) {
+      const map = new Map();
+      list.forEach(item => {
+        const key = item.p || 0;
+        if (!map.has(key)) map.set(key, []);
+        map.get(key).push(item);
+      });
+      return map;
+    }
+
+    function renderTree() {
+      const wrap = document.getElementById('treeRows');
+      const note = document.getElementById('treeNote');
+      wrap.innerHTML = '';
+      const list = filteredList();
+      const childrenMap = buildChildrenMap(list);
+      const roots = list.filter(x => !x.p);
+      note.textContent = `当前按根节点分支显示 ${roots.length} 条主枝，优先保留家谱分支关系，而不是简单平铺。`;
+
+      const branchTree = document.createElement('div');
+      branchTree.className = 'branch-tree';
+
+      roots.forEach(root => {
+        const rootEl = document.createElement('section');
+        rootEl.className = 'branch-root';
+        const generationsUnderRoot = [];
+        let frontier = [root];
+        let depth = 1;
+        while (frontier.length && depth < 8) {
+          const next = [];
+          frontier.forEach(node => {
+            const kids = childrenMap.get(node.id) || [];
+            kids.forEach(k => next.push(k));
+          });
+          if (next.length) generationsUnderRoot.push({ depth: depth + 1, items: next });
+          frontier = next;
+          depth += 1;
+        }
+
+        rootEl.innerHTML = `
+          <div class="branch-root-head">
+            <div>
+              <div class="branch-root-name">${root.n || '未命名根节点'}</div>
+              <div class="branch-root-meta">${root.bio || '家族主枝入口'}<br/>${root.b || '生年待补'}${root.d ? ' · ' + root.d : ''}</div>
+            </div>
+            <div class="generation-badge">主枝</div>
+          </div>
+        `;
+
+        const groups = document.createElement('div');
+        groups.className = 'branch-groups';
+
+        if (!generationsUnderRoot.length) {
+          const empty = document.createElement('div');
+          empty.className = 'section-note';
+          empty.textContent = '该主枝当前没有更多下级成员。';
+          groups.appendChild(empty);
+        } else {
+          generationsUnderRoot.forEach(group => {
+            const block = document.createElement('div');
+            block.className = 'branch-group';
+            block.innerHTML = `<div class="branch-group-title">下展开至第 ${group.depth} 代 · ${group.items.length} 人</div>`;
+            const scroller = document.createElement('div');
+            scroller.className = 'branch-children';
+            group.items.forEach(item => {
+              const card = document.createElement('article');
+              card.className = 'branch-child-card';
+              card.dataset.treeId = item.id;
+              card.innerHTML = `
+                <div class="branch-child-name">${item.n || '未命名成员'}</div>
+                <div class="branch-child-meta">上级：${parentName(item)}<br/>${item.s ? '配偶：' + item.s + '<br/>' : ''}${item.bio || '点击查看详情'}</div>
+                <div class="tree-node-line"><span class="tree-mini-chip">第 ${item.gen || '-'} 代</span></div>
+              `;
+              scroller.appendChild(card);
+            });
+            block.appendChild(scroller);
+            groups.appendChild(block);
+          });
+        }
+
+        rootEl.appendChild(groups);
+        branchTree.appendChild(rootEl);
+      });
+
+      wrap.appendChild(branchTree);
+      wrap.querySelectorAll('[data-tree-id]').forEach(el => {
+        el.addEventListener('click', () => openDetail(Number(el.dataset.treeId)));
+      });
+    }
+
+    function renderList() {
+      const list = filteredList();
+      const wrap = document.getElementById('personList');
+      const empty = document.getElementById('emptyState');
+      const note = document.getElementById('resultNote');
+      wrap.innerHTML = '';
+      note.textContent = `当前显示 ${list.length} 位成员，支持关键词、周姓和代际筛选。`;
+      empty.style.display = list.length ? 'none' : 'block';
+      list.forEach(item => {
+        const el = document.createElement('article');
+        el.className = 'person-card';
+        el.innerHTML = `
+          <div class="person-main">
+            <div class="person-top">
+              <div class="person-name">${item.n || '未命名成员'}</div>
+              <div class="generation-badge">第 ${item.gen || '-'} 代</div>
+            </div>
+            <div class="person-dates">${item.b || '生年待补'} ${item.d ? ' · ' + item.d : ''}</div>
+            <div class="person-lineage">上级：${parentName(item)}</div>
+            <div class="person-spouse">${item.s ? '配偶：' + item.s : '配偶信息待补充'}</div>
+          </div>
+          <div class="person-actions">
+            <button class="ghost-btn" data-id="${item.id}">查看详情</button>
+          </div>
+        `;
+        el.querySelector('button').onclick = () => openDetail(item.id);
+        wrap.appendChild(el);
+      });
+    }
+
+    function openDetail(id) {
+      const item = M.find(x => x.id === id);
+      if (!item) return;
+      document.getElementById('sheetTitle').textContent = item.n || '人物详情';
+      document.getElementById('sheetMeta').textContent = `第 ${item.gen || '-'} 代 · 上级：${parentName(item)}${item.s ? ' · 配偶：' + item.s : ''}`;
+      document.getElementById('sheetBio').textContent = item.bio || '这位成员当前还没有补充简介。';
+      const grid = document.getElementById('sheetGrid');
+      grid.innerHTML = '';
+      const fields = [
+        ['出生', item.b || '待补充'],
+        ['卒年', item.d || '待补充'],
+        ['配偶', item.s || '待补充'],
+        ['配偶出生', item.sb || '待补充'],
+        ['配偶卒年', item.sd || '待补充'],
+        ['本地存储', STORAGE_KEY],
+      ];
+      fields.forEach(([label, value]) => {
+        const block = document.createElement('div');
+        block.className = 'sheet-item';
+        block.innerHTML = `<div class="sheet-item-label">${label}</div><div class="sheet-item-value">${value}</div>`;
+        grid.appendChild(block);
+      });
+      document.getElementById('detailSheet').classList.add('on');
+      document.getElementById('sheetBackdrop').classList.add('on');
+    }
+
+    function closeDetail() {
+      document.getElementById('detailSheet').classList.remove('on');
+      document.getElementById('sheetBackdrop').classList.remove('on');
+    }
+
+    function syncViewPanels() {
+      document.getElementById('listPanel').style.display = currentView === 'list' ? 'block' : 'none';
+      document.getElementById('treePanel').style.display = currentView === 'tree' ? 'block' : 'none';
+      document.getElementById('stat-mode').textContent = currentView === 'tree' ? '树状浏览' : '浏览版';
+    }
+
+    function bindEvents() {
+      document.getElementById('searchInput').addEventListener('input', e => {
+        searchKeyword = e.target.value || '';
+        renderAll();
+      });
+      document.querySelectorAll('.segmented[aria-label="筛选模式"] button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          currentFilter = btn.dataset.filter;
+          document.querySelectorAll('.segmented[aria-label="筛选模式"] button').forEach(x => x.classList.toggle('on', x === btn));
+          renderAll();
+        });
+      });
+      document.querySelectorAll('#viewModeSwitch button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          currentView = btn.dataset.view;
+          document.querySelectorAll('#viewModeSwitch button').forEach(x => x.classList.toggle('on', x === btn));
+          renderAll();
+        });
+      });
+      document.getElementById('sheetBackdrop').addEventListener('click', closeDetail);
+      document.getElementById('btn-scroll-list').addEventListener('click', () => document.getElementById('listPanel').scrollIntoView({ behavior: 'smooth', block: 'start' }));
+      document.getElementById('btn-scroll-featured').addEventListener('click', () => document.getElementById('featuredPanel').scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    }
+
+    function renderAll() {
+      syncViewPanels();
+      renderGenerationStrip();
+      renderFeatured();
+      renderTree();
+      renderList();
+    }
+
+    loadData();
+    updateStats();
+    bindEvents();
+    renderAll();
+  </script>
+</body>
+</html>
